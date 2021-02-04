@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
-//using Assets.LSL4Unity.Scripts; // reference the LSL4Unity namespace to get access to all classes
+using UnityEngine.UI;
+using Assets.LSL4Unity.Scripts; // reference the LSL4Unity namespace to get access to all classes
+
 
 public class ExperimentManager : MonoBehaviour
 {
@@ -21,11 +23,13 @@ public class ExperimentManager : MonoBehaviour
     public int baselineDuration = 300;              //5 minutes
 
     [Header("Misc")]
-    //public LSLMarkerStream marker;
+    public LSLMarkerStream marker;
+
     //##########
 
+
     // General vars
-    private string[] conditions = new string[5] { "ST_walking", "ST_audio", "DT_audio", "ST_visual",  "DT_visual" };
+    private string[] conditions = new string[7] { "ST_walking", "ST_audio", "DT_audio", "ST_visual",  "DT_visual", "Baseline_sitting", "Baseline_walking" };
     private int[,] conditionSequences = new int[12, 5] {        //the 12 sequences from the ethics document
         { 0, 1, 2, 3, 4 },      //Sequence 1
         { 0, 1, 4, 3, 2 },      //Sequence 2
@@ -60,13 +64,13 @@ public class ExperimentManager : MonoBehaviour
 
     private string participantID;
     private int participantAge;
+    private string participantGroup;
     private string participantGender;
 
     private string tempMarkerText;
 
 
     // Experiment specific
-    private bool experimentStarted = false;
     private int stWalkingRunNo = 0;
     private int stAudioRunNo = 0;
     private int stVisualRunNo = 0;
@@ -76,13 +80,10 @@ public class ExperimentManager : MonoBehaviour
     private int trialCounter = 0;
     private float currentIsiDuration;         //stores individual ISI duration of the current trial
 
-
     // Training specific
-    private bool trainingStarted = false;
     private int trainingRunNo = 0;
 
     // Baseline specific
-    private bool baselineStarted = false;
     private int baselineSitRunNo = 0;
     private int baselineWalkRunNo = 0;
 
@@ -91,12 +92,24 @@ public class ExperimentManager : MonoBehaviour
     private int programStatus = 0;                  //indicating the current status of the program (main menu, training, experiment etc)
     private bool idSet = false;
     private bool ageSet = false;
+    private bool groupSet = false;
     private bool genderSet = false;
     private bool gaitPositionsSet = false;
 
     // Experiment logic handler
+    private bool experimentStarted = false;
     private bool expInitRun = false;
     private bool experimentEnd = false;
+
+    //training logic handler
+    private bool trainingStarted = false;
+    private bool trainingInitRun = false;
+    private bool trainingEnd = false;
+
+    //baseline logic handler
+    private bool baselineStarted = false;
+    private bool baselineInitRun = false;
+    private bool baselineEnd = false;
 
     // Trial logic handler
     private bool isiStarted = false;
@@ -104,20 +117,35 @@ public class ExperimentManager : MonoBehaviour
 
 
     // Gameobject handles
+    private GameObject mainMenuCanvas, configMenuCanvas, calibrationMenuCanvas,
+        buttonTraining, buttonBaselineWalking, buttonBaselineSitting, buttonSittingVisual, buttonSittingAudio, buttonWalkingST, buttonWalkingVisual, buttonWalkingAudio,
+        inputParticipantID, inputParticipantAge, inputParticipantGroup, inputParticipantGender
+        ;
 
 
 
-    
+
     void Start()
     {
         // Start is called before the first frame update
 
         // Finding the game objects:
-        //marker = FindObjectOfType<LSLMarkerStream>();
-
-        //gameobjecthandle = GameObject.Find("Table");
-
-
+        marker = FindObjectOfType<LSLMarkerStream>();
+        mainMenuCanvas = GameObject.Find("MainMenuCanvas");
+        buttonTraining = GameObject.Find("ButtonTraining");
+        buttonBaselineWalking = GameObject.Find("Table");
+        buttonBaselineSitting = GameObject.Find("ButtonBaselineWalking");
+        buttonSittingVisual = GameObject.Find("ButtonSittingVisual");
+        buttonSittingAudio = GameObject.Find("ButtonSittingAudio");
+        buttonWalkingST = GameObject.Find("ButtonWalkingST");
+        buttonWalkingVisual = GameObject.Find("ButtonWalkingVisual");
+        buttonWalkingAudio = GameObject.Find("ButtonWalkingAudio");
+        configMenuCanvas = GameObject.Find("ConfigMenuCanvas");
+        calibrationMenuCanvas = GameObject.Find("CalibrationMenuCanvas");
+        inputParticipantID = GameObject.Find("InputParticipantID");
+        inputParticipantAge = GameObject.Find("InputParticipantAge");
+        inputParticipantGroup = GameObject.Find("DropdownParticipantGroup");
+        inputParticipantGender = GameObject.Find("DropdownParticipantGender");
 
         // start the Main Menu:
         StartMainMenu();
@@ -150,13 +178,43 @@ public class ExperimentManager : MonoBehaviour
 
                 case 3: //training
                     {
+                        if (Input.GetKeyDown("escape"))
+                        {
+                            marker.Write("training:abort");
+                            Debug.Log("training:abort");
+
+                            trainingStarted = false;
+
+                            //go to main menu
+                            StartMainMenu();
+                        }
+                        else if (!trainingInitRun)
+                        {
+                            InitTraining();
+                        }
+                        else
+                        {
+
+                        }
+
                         break;
                     }
 
                 case 4: //experiment
                     {
+                        //check for abort by pressing the escape key
+                        if (Input.GetKeyDown("escape"))
+                        {
+                            marker.Write("experiment:abort");
+                            Debug.Log("experiment:abort");
+
+                            experimentStarted = false;
+
+                            //go to main menu
+                            StartMainMenu();
+                        }
                         //Initialize experiment
-                        if (!expInitRun)
+                        else if (!expInitRun)
                         {
                             if (currentConditionNo == 0)
                             {
@@ -174,15 +232,32 @@ public class ExperimentManager : MonoBehaviour
                                 InitExperimentWalking();
                             }
                         }
-
-                        //Run experiment
-                        RunExperiment();
+                        else
+                        {
+                            //Run experiment
+                            RunExperiment();
+                        }
 
                         break;
                     }
 
-                case 5: //break
+                case 5: //baseline
                     {
+                        //check for abort by pressing the escape key
+                        if (Input.GetKeyDown("escape"))
+                        {
+                            marker.Write("baseline:abort");
+                            Debug.Log("baseline:abort");
+                            
+                            baselineStarted = false;
+
+                            //go to main menu
+                            StartMainMenu();
+                        }
+                        else if (!baselineInitRun)
+                        {
+                            
+                        }
                         break;
                     }
 
@@ -191,7 +266,7 @@ public class ExperimentManager : MonoBehaviour
         }
         catch (System.Exception e)  //catch errors and log them and write them to lsl stream, then throw the exception again
         {
-            //marker.Write(e.ToString());
+            marker.Write(e.ToString());
             Debug.LogError(e);
             throw (e);
         }
@@ -201,20 +276,32 @@ public class ExperimentManager : MonoBehaviour
 
 
     //Start methods
-    void StartMainMenu()
+    public void StartMainMenu()
     {
         //This method is used for starting the main menu.
         Debug.Log("Starting Main Menu");
         programStatus = 0;
 
+        //activate/deactivate GameObjects
+        mainMenuCanvas.SetActive(true);
+        configMenuCanvas.SetActive(false);
+        calibrationMenuCanvas.SetActive(false);
+
+
     }//StartMainMenu()
 
 
-    void StartConfiguration()
+    public void StartConfiguration()
     {
         //This method is used for the "Configuration" button on the main menu. WHen the button is pressed this method is executed.
         Debug.Log("Starting Configuration");
         programStatus = 1;
+
+        //activate/deactivate GameObjects
+        mainMenuCanvas.SetActive(false);
+        configMenuCanvas.SetActive(true);
+        calibrationMenuCanvas.SetActive(false);
+
 
     }//StartConfiguration()
 
@@ -224,7 +311,7 @@ public class ExperimentManager : MonoBehaviour
         //this is called when pressing the "Back" button in the configuration menu
 
         //save data from the inputs:
-        /*
+        
         //participantID
         if (inputParticipantID.GetComponent<InputField>().text != "")
         {
@@ -254,6 +341,16 @@ public class ExperimentManager : MonoBehaviour
         }
         else
             ageSet = false;
+        /*
+        //participantGroup
+        if (!inputParticipantGroup.GetComponent<Dropdown>().options[inputParticipantGroup.GetComponent<Dropdown>().value].text.Equals("?"))
+        {
+            groupSet = true;
+            participantGroup = inputParticipantGroup.GetComponent<Dropdown>().options[inputParticipantGroup.GetComponent<Dropdown>().value].text;
+        }
+        else
+            genderSet = false;
+        */
 
         //participantGender
         if (!inputParticipantGender.GetComponent<Dropdown>().options[inputParticipantGender.GetComponent<Dropdown>().value].text.Equals("?"))
@@ -263,11 +360,12 @@ public class ExperimentManager : MonoBehaviour
         }
         else
             genderSet = false;
-        */
+        
         
         /*
         Debug.Log("participantID: " + participantID + " InputField.text: " + inputParticipantID.GetComponent<InputField>().text);
         Debug.Log("participantAge: " + participantAge.ToString() + " InputField.text: " + inputParticipantAge.GetComponent<InputField>().text);
+        Debug.Log("participantGroup: " + participantGroup + " InputField.text: " + inputParticipantGroup.GetComponent<Dropdown>().options[inputParticipantGroup.GetComponent<Dropdown>().value].text);
         Debug.Log("participantGender: " + participantGender + " InputField.text: " + inputParticipantGender.GetComponent<Dropdown>().options[inputParticipantGender.GetComponent<Dropdown>().value].text);
         */
 
@@ -277,33 +375,67 @@ public class ExperimentManager : MonoBehaviour
     }//ConfigurationExit()
 
 
-    void StartCalibration()
+    public void StartCalibration()
     {
         //This method is used for the "Configuration" button on the main menu. WHen the button is pressed this method is executed.
         Debug.Log("Starting Calibration");
         programStatus = 2;
 
+        //activate/deactivate GameObjects
+        mainMenuCanvas.SetActive(false);
+        configMenuCanvas.SetActive(false);
+        calibrationMenuCanvas.SetActive(true);
+
+
     }//StartCalibration()
 
 
-    void StartTraining()
+    public void StartTraining()
     {
         //This method is used for the "Start Training" button on the main menu. When the button is pressed this method is executed.
-        //marker.Write("Main menu: Start Training button pressed");
+        marker.Write("Main menu: Start Training button pressed");
         Debug.Log("Starting Training");
         programStatus = 3;
+
+        //activate/deactivate GameObjects
+        mainMenuCanvas.SetActive(false);
+        configMenuCanvas.SetActive(false);
+        calibrationMenuCanvas.SetActive(false);
+
 
     }//StartTraining()
 
 
-    void StartExperiment(int conditionNo)
+    public void StartBaseline(int conditionNo)
     {
-        //This method is used for the "Start Experiment" button on the main menu. WHen the button is pressed this method is executed.
-        //marker.Write("Main menu: Start Experiment button pressed");
+        //This method is used for all "Start Baseline" buttons in the main menu. If one of these buttons is pressed this method is executed.
+        marker.Write("Main menu: Start " + conditions[conditionNo] + " button pressed");
+        Debug.Log("Starting " + conditions[conditionNo]);
+        programStatus = 5;
+
+        currentConditionNo = conditionNo;
+
+        //activate/deactivate GameObjects
+        mainMenuCanvas.SetActive(false);
+        configMenuCanvas.SetActive(false);
+        calibrationMenuCanvas.SetActive(false);
+
+    }
+
+
+    public void StartExperiment(int conditionNo)
+    {
+        //This method is used for all "Start Block" buttons in the main menu. If one of these buttons is pressed this method is executed.
+        marker.Write("Main menu: Start Experiment button pressed");
         Debug.Log("Starting Experiment");
         programStatus = 4;
 
         currentConditionNo = conditionNo;
+
+        //activate/deactivate GameObjects
+        mainMenuCanvas.SetActive(false);
+        configMenuCanvas.SetActive(false);
+        calibrationMenuCanvas.SetActive(false);
 
     }//StartExperiment()
 
@@ -350,15 +482,16 @@ public class ExperimentManager : MonoBehaviour
             "isiDurationAvg:" + isiDurationAvg.ToString() + ";" +
             "isiDurationVariation:" + isiDurationVariation.ToString() + ";" +
             "responseTimeMax:" + responseTimeMax.ToString();
-        //marker.Write(tempMarkerText);
+        marker.Write(tempMarkerText);
         Debug.Log(tempMarkerText);
 
         //write participant info (from configuration menu)
         tempMarkerText =
             "participantID:" + participantID + ";" +
             "participantAge:" + participantAge.ToString() + ";" +
+            "participantGroup:" + participantGroup + ";" +
             "participantGender:" + participantGender;
-        //marker.Write(tempMarkerText);
+        marker.Write(tempMarkerText);
         Debug.Log(tempMarkerText);
 
         //write calibration info (from calibration menu)
@@ -367,7 +500,7 @@ public class ExperimentManager : MonoBehaviour
             "gaitCornerPos2:" + gaitCornerPositionTwo.ToString() + ";" +
             "gaitCornerPos3:" + gaitCornerPositionTree.ToString() + ";" +
             "gaitCornerPos4:" + gaitCornerPositionFour.ToString();
-        //marker.Write(tempMarkerText);
+        marker.Write(tempMarkerText);
         Debug.Log(tempMarkerText);
 
         expInitRun = true;
@@ -416,15 +549,16 @@ public class ExperimentManager : MonoBehaviour
             "isiDurationAvg:" + isiDurationAvg.ToString() + ";" +
             "isiDurationVariation:" + isiDurationVariation.ToString() + ";" +
             "responseTimeMax:" + responseTimeMax.ToString();
-        //marker.Write(tempMarkerText);
+        marker.Write(tempMarkerText);
         Debug.Log(tempMarkerText);
 
         //write participant info (from configuration menu)
         tempMarkerText =
             "participantID:" + participantID + ";" +
             "participantAge:" + participantAge.ToString() + ";" +
+            "participantGroup:" + participantGroup + ";" +
             "participantGender:" + participantGender;
-        //marker.Write(tempMarkerText);
+        marker.Write(tempMarkerText);
         Debug.Log(tempMarkerText);
 
         //write calibration info (from calibration menu)
@@ -433,13 +567,112 @@ public class ExperimentManager : MonoBehaviour
             "gaitCornerPos2:" + gaitCornerPositionTwo.ToString() + ";" +
             "gaitCornerPos3:" + gaitCornerPositionTree.ToString() + ";" +
             "gaitCornerPos4:" + gaitCornerPositionFour.ToString();
-        //marker.Write(tempMarkerText);
+        marker.Write(tempMarkerText);
         Debug.Log(tempMarkerText);
 
 
         expInitRun = true;
 
     }//InitExperimentWalking()
+
+
+    void InitBaseline()
+    {
+        //supposed to only run once in the beginning of a baseline
+        baselineEnd = false;
+
+        if (currentConditionNo == 6)
+        {
+            baselineSitRunNo += 1;
+
+            //write baseline start marker
+            tempMarkerText =
+            "baseline:start;" +
+            "condition:" + conditions[currentConditionNo] + ";" +
+            "runNo:" + baselineSitRunNo.ToString() + ";" +
+            "duration:" + baselineDuration.ToString();
+
+        }
+        else if (currentConditionNo == 7)
+        {
+            baselineWalkRunNo += 1;
+
+            //write baseline start marker
+            tempMarkerText =
+            "baseline:start;" +
+            "condition:" + conditions[currentConditionNo] + ";" +
+            "runNo:" + baselineWalkRunNo.ToString() + ";" +
+            "duration:" + baselineDuration.ToString();
+
+        }
+
+        marker.Write(tempMarkerText);
+        Debug.Log(tempMarkerText);
+
+        //write participant info (from configuration menu)
+        tempMarkerText =
+            "participantID:" + participantID + ";" +
+            "participantAge:" + participantAge.ToString() + ";" +
+            "participantGroup:" + participantGroup + ";" +
+            "participantGender:" + participantGender;
+        marker.Write(tempMarkerText);
+        Debug.Log(tempMarkerText);
+
+        //write calibration info (from calibration menu)
+        tempMarkerText =
+            "gaitCornerPos1:" + gaitCornerPositionOne.ToString() + ";" +
+            "gaitCornerPos2:" + gaitCornerPositionTwo.ToString() + ";" +
+            "gaitCornerPos3:" + gaitCornerPositionTree.ToString() + ";" +
+            "gaitCornerPos4:" + gaitCornerPositionFour.ToString();
+        marker.Write(tempMarkerText);
+        Debug.Log(tempMarkerText);
+
+        baselineInitRun = true;
+
+    }//InitBaseline()
+
+
+    void InitTraining()
+    {
+        //supposed to only run once in the beginning of a training run
+
+        trainingEnd = false;
+        trialCounter = 0;
+        trainingRunNo += 1;
+
+        /* ToDo
+        //write training start marker
+        tempMarkerText =
+            "training:start;" +
+            "condition:" + conditions[currentConditionNo] + ";" +
+            "runNo:" + stWalkingRunNo.ToString() + ";" +
+            "gaitPasses:" + gaitPassesPerBlock.ToString();
+
+        marker.Write(tempMarkerText);
+        Debug.Log(tempMarkerText);
+
+        //write participant info (from configuration menu)
+        tempMarkerText =
+            "participantID:" + participantID + ";" +
+            "participantAge:" + participantAge.ToString() + ";" +
+            "participantGroup:" + participantGroup + ";" +
+            "participantGender:" + participantGender;
+        marker.Write(tempMarkerText);
+        Debug.Log(tempMarkerText);
+
+        //write calibration info (from calibration menu)
+        tempMarkerText =
+            "gaitCornerPos1:" + gaitCornerPositionOne.ToString() + ";" +
+            "gaitCornerPos2:" + gaitCornerPositionTwo.ToString() + ";" +
+            "gaitCornerPos3:" + gaitCornerPositionTree.ToString() + ";" +
+            "gaitCornerPos4:" + gaitCornerPositionFour.ToString();
+        marker.Write(tempMarkerText);
+        Debug.Log(tempMarkerText);
+        */
+
+        expInitRun = true;
+
+    }
 
 
     void InitWalkingST()
@@ -454,19 +687,20 @@ public class ExperimentManager : MonoBehaviour
         //write experiment start marker
         tempMarkerText =
             "experiment:start;" +
-            "condition:" + conditions[0] + ";" +
+            "condition:" + conditions[currentConditionNo] + ";" +
             "runNo:" + stWalkingRunNo.ToString() + ";" +
             "gaitPasses:" + gaitPassesPerBlock.ToString();
            
-        //marker.Write(tempMarkerText);
+        marker.Write(tempMarkerText);
         Debug.Log(tempMarkerText);
 
         //write participant info (from configuration menu)
         tempMarkerText =
             "participantID:" + participantID + ";" +
             "participantAge:" + participantAge.ToString() + ";" +
+            "participantGroup:" + participantGroup + ";" +
             "participantGender:" + participantGender;
-        //marker.Write(tempMarkerText);
+        marker.Write(tempMarkerText);
         Debug.Log(tempMarkerText);
 
         //write calibration info (from calibration menu)
@@ -475,9 +709,8 @@ public class ExperimentManager : MonoBehaviour
             "gaitCornerPos2:" + gaitCornerPositionTwo.ToString() + ";" +
             "gaitCornerPos3:" + gaitCornerPositionTree.ToString() + ";" +
             "gaitCornerPos4:" + gaitCornerPositionFour.ToString();
-        //marker.Write(tempMarkerText);
+        marker.Write(tempMarkerText);
         Debug.Log(tempMarkerText);
-
 
         expInitRun = true;
 
@@ -533,12 +766,12 @@ public class ExperimentManager : MonoBehaviour
                 //write specific end marker
                 if (trainingStarted)
                 {
-                    //marker.Write("training:end");
+                    marker.Write("training:end");
                     Debug.Log("training:end");
                 }
                 else
                 {
-                    //marker.Write("experiment:end");
+                    marker.Write("experiment:end");
                     Debug.Log("experiment:end");
                 }
 
@@ -566,7 +799,7 @@ public class ExperimentManager : MonoBehaviour
             if (!isiStarted)
             {
                 isiStarted = true;
-                //marker.Write("ISI started");
+                marker.Write("ISI started");
                 Debug.Log("ISI started: " + currentTime.ToString());
             }
         }
@@ -577,7 +810,7 @@ public class ExperimentManager : MonoBehaviour
             if (!stimulusShown) {
                 //ISI ended
                 isiStarted = false;
-                //marker.Write("ISI ended");
+                marker.Write("ISI ended");
                 Debug.Log("ISI ended: " + currentTime.ToString());
 
                 //trigger stimulus
@@ -660,7 +893,7 @@ public class ExperimentManager : MonoBehaviour
         {
             //response time over
 
-            //marker.Write("response time over");
+            marker.Write("response time over");
             Debug.Log("response time over. " + currentTime.ToString());
 
             //go to next trial
@@ -676,7 +909,7 @@ public class ExperimentManager : MonoBehaviour
         //controls transition to the next trial or end of the block
 
         //send trial end marker
-        //marker.Write("trialEnd:" + trialCounter.ToString());
+        marker.Write("trialEnd:" + trialCounter.ToString());
         Debug.Log("trialEnd:" + trialCounter.ToString());
 
         trialCounter += 1;
@@ -752,7 +985,7 @@ public class ExperimentManager : MonoBehaviour
             "condition:" + conditions[currentConditionNo] + ";" +
             "isiDuration:" + currentIsiDuration.ToString() + ";" +
             "stimulus:" + currentStimulus;
-        //marker.Write(tempMarkerText);
+        marker.Write(tempMarkerText);
         Debug.Log(tempMarkerText);
 
     }//StartTrial()
