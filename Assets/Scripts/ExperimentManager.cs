@@ -15,6 +15,7 @@ public class ExperimentManager : MonoBehaviour
     [Header("Experiment specific")]
     public int gaitPassesPerBlock = 35;             
     public int trialsSittingPerBlock = 100;
+    public int trialsWalkingChunkMultiplier = 10;   //will be multiplied with the amount of different stimuli to get a chunk size for the walking conditions
 
     [Header("Training specific")]
     public int trialsPerCondTraining = 5;
@@ -78,7 +79,10 @@ public class ExperimentManager : MonoBehaviour
     private int dtVisualRunNo = 0;
     private float[] isiDurations;
     private int trialCounter = 0;
-    private float currentIsiDuration;         //stores individual ISI duration of the current trial
+    private int sequenceChunkCounter = 0;       //used only in walking conditions for isi and trials sequences
+    private float currentIsiDuration;           //stores individual ISI duration of the current trial
+    private string responseSide = "";
+    private bool responseActive = false;
 
     // Training specific
     private int trainingRunNo = 0;
@@ -119,8 +123,11 @@ public class ExperimentManager : MonoBehaviour
     // Gameobject handles
     private GameObject mainMenuCanvas, configMenuCanvas, calibrationMenuCanvas,
         buttonTraining, buttonBaselineWalking, buttonBaselineSitting, buttonSittingVisual, buttonSittingAudio, buttonWalkingST, buttonWalkingVisual, buttonWalkingAudio,
-        inputParticipantID, inputParticipantAge, inputParticipantGroup, inputParticipantGender
+        inputParticipantID, inputParticipantAge, inputParticipantGroup, inputParticipantGender,
+        controllerRight, controllerLeft
         ;
+
+    public AudioSource audioSource_high, audioSource_low;
 
 
 
@@ -146,6 +153,8 @@ public class ExperimentManager : MonoBehaviour
         inputParticipantAge = GameObject.Find("InputParticipantAge");
         inputParticipantGroup = GameObject.Find("DropdownParticipantGroup");
         inputParticipantGender = GameObject.Find("DropdownParticipantGender");
+        //controllerLeft = GameObject.Find("Controller (left)");
+        controllerRight = GameObject.Find("Controller (right)");
 
         // start the Main Menu:
         StartMainMenu();
@@ -158,6 +167,23 @@ public class ExperimentManager : MonoBehaviour
         // Update is called once per frame
         try
         {
+            //try to fetch SteamVR controllers (as they tend to be available a few frames after the start)
+            /*
+            if (controllerLeft == null)
+            {
+                Debug.Log("Controller (left) is null");
+                controllerRight = GameObject.Find("Controller (left)");
+
+            }*/
+            if (controllerRight == null)
+            {
+                Debug.Log("Controller (right) is null");
+                controllerRight = GameObject.Find("Controller (right)");
+            }
+            
+
+            //Debug.Log("GetJoystickNames: " + UnityEngine.Input.GetJoystickNames());
+
             //exp status check
             switch (programStatus)
             {
@@ -231,6 +257,8 @@ public class ExperimentManager : MonoBehaviour
                                 //dual task walking conditions
                                 InitExperimentWalking();
                             }
+
+                            experimentStarted = true;
                         }
                         else
                         {
@@ -446,6 +474,8 @@ public class ExperimentManager : MonoBehaviour
     {
         //supposed to only run once in the beginning of an experiment run
 
+        Debug.Log("InitExperimentSitting()");
+
         experimentEnd = false;
         trialCounter = 0;
         int currentConditionCounter;
@@ -505,6 +535,9 @@ public class ExperimentManager : MonoBehaviour
 
         expInitRun = true;
 
+        //start first trial
+        StartTrial();
+
     }//InitExperimentSitting()
 
 
@@ -517,10 +550,13 @@ public class ExperimentManager : MonoBehaviour
         gaitPassCounter = 0;
         int currentConditionCounter;
 
+        
+        //Create trial sequence: in walking conditions we don't know the amount of trials geforehand so we calculate the trial sequence and isi durations in chunks
+        //During the block we always check if we are at the end of the sequence and then randomize the sequence anew and reset start the sequence from the beginning
         if (conditions[currentConditionNo].Contains("visual"))
         {
             //create trial sequence for the block
-            //ToDo
+            stimuliBlockSequence = CreateTrialSequenceArray(visualStimuli.Length * trialsWalkingChunkMultiplier, stimuliBaseSequence, visualStimuli);
 
             //increment condition counter
             dtVisualRunNo += 1;
@@ -529,7 +565,7 @@ public class ExperimentManager : MonoBehaviour
         else
         {
             //create trial sequence for the block
-            //ToDo
+            stimuliBlockSequence = CreateTrialSequenceArray(audioStimuli.Length * trialsWalkingChunkMultiplier, stimuliBaseSequence, audioStimuli);
 
             //increment condition counter
             dtAudioRunNo += 1;
@@ -537,7 +573,8 @@ public class ExperimentManager : MonoBehaviour
         }
 
         //Create isi durations for the block
-        //ToDo
+        isiDurations = CreateDurationsArray(stimuliBaseSequence.Length * trialsWalkingChunkMultiplier, isiDurationAvg, isiDurationVariation);
+
 
 
         //write experiment start marker
@@ -572,6 +609,9 @@ public class ExperimentManager : MonoBehaviour
 
 
         expInitRun = true;
+
+        //start first trial
+        StartTrial();
 
     }//InitExperimentWalking()
 
@@ -672,6 +712,9 @@ public class ExperimentManager : MonoBehaviour
 
         expInitRun = true;
 
+        //start first trial
+        StartTrial();
+
     }
 
 
@@ -721,6 +764,9 @@ public class ExperimentManager : MonoBehaviour
     {
         //controls all trials during an experiment run
 
+        //Debug.Log("RunExperiment()");
+        //Debug.Log("experimentStarted: " + BoolToString(experimentStarted));
+
         if (experimentStarted)
         {
             //update currentTime (adding the time taken to render last frame)
@@ -733,7 +779,7 @@ public class ExperimentManager : MonoBehaviour
                 if (gaitPassCounter < gaitPassesPerBlock)
                 {
                     //check if participant is inside OptoGait
-                    if (checkInsideGait())
+                    if (CheckInsideGait())
                     {
                         //extra method or RunTrial()?
                     }
@@ -745,7 +791,7 @@ public class ExperimentManager : MonoBehaviour
                 if (gaitPassCounter < gaitPassesPerBlock)
                 {
                     //check if participant is inside OptoGait
-                    if (checkInsideGait())
+                    if (CheckInsideGait())
                     {
                         RunTrial();
                     }
@@ -793,9 +839,13 @@ public class ExperimentManager : MonoBehaviour
     {
         //controls the trial events
 
+        //Debug.Log("RunTrial() currentTime: " + currentTime.ToString());
+
         //Start of trial: ISI
         if (currentTime <= currentIsiDuration)
         {
+            //Debug.Log("currentIsiDuration: " + currentIsiDuration.ToString());
+
             if (!isiStarted)
             {
                 isiStarted = true;
@@ -805,91 +855,111 @@ public class ExperimentManager : MonoBehaviour
         }
 
         //After ISI -> trigger a stimulus (audio/visual)
-        else if (currentTime <= currentIsiDuration + stimulusDuration)
+        if (currentTime > currentIsiDuration && !stimulusShown)
         {
-            if (!stimulusShown) {
-                //ISI ended
-                isiStarted = false;
-                marker.Write("ISI ended");
-                Debug.Log("ISI ended: " + currentTime.ToString());
+            //ISI ended
+            isiStarted = false;
+            marker.Write("ISI ended");
+            Debug.Log("ISI ended: " + currentTime.ToString());
 
-                //trigger stimulus
-                if (currentConditionNo == 1 || currentConditionNo == 2)
-                {
-                    //audio stimuli
+            //trigger stimulus
+            if (currentConditionNo == 1 || currentConditionNo == 2)
+            {
+                //audio stimuli
 
-                    string stimulusSide = "";
-                    string stimulusPitch = "";
+                string stimulusSide = "";
+                string stimulusPitch = "";
                     
-                    if (currentStimulus.Contains("left"))
-                    {
-                        stimulusSide = "left";
-                    }
-                    else if (currentStimulus.Contains("right"))
-                    {
-                        stimulusSide = "right";
-                    }
-
-                    if (currentStimulus.Contains("high"))
-                    {
-                        stimulusPitch = "high";
-                    }
-                    else if (currentStimulus.Contains("low"))
-                    {
-                        stimulusPitch = "low";
-                    }
-
-                    TriggerAudioStimulus(stimulusSide, stimulusPitch);
-
+                if (currentStimulus.Contains("left"))
+                {
+                    stimulusSide = "left";
                 }
-                else if (currentConditionNo == 3 || currentConditionNo == 4)
+                else if (currentStimulus.Contains("right"))
                 {
-                    //visual stimuli
-
-                    string stimulusSide = "";
-                    string stimulusColor = "";
-                    
-                    if (currentStimulus.Contains("left"))
-                    {
-                        stimulusSide = "left";
-                    }
-                    else if (currentStimulus.Contains("right"))
-                    {
-                        stimulusSide = "right";
-                    }
-
-                    if (currentStimulus.Contains("yellow"))
-                    {
-                        stimulusColor = "yellow";   //rbg values instead?
-                    }
-                    else if (currentStimulus.Contains("blue"))
-                    {
-                        stimulusColor = "blue";     //rgb values instead?
-                    }
-
-                    TriggerAudioStimulus(stimulusSide, stimulusColor);
-
+                    stimulusSide = "right";
                 }
 
-                //Debug.Log("Stimulus activated: " + currentStimulusObj.name + " " + actualTime.ToString());
+                if (currentStimulus.Contains("high"))
+                {
+                    stimulusPitch = "high";
+                }
+                else if (currentStimulus.Contains("low"))
+                {
+                    stimulusPitch = "low";
+                }
 
-                //set time when stimulus was triggert
-                currentStimulusTime = currentTime;
+                TriggerAudioStimulus(stimulusSide, stimulusPitch);
 
-                stimulusShown = true;
             }
+            else if (currentConditionNo == 3 || currentConditionNo == 4)
+            {
+                //visual stimuli
+
+                string stimulusSide = "";
+                string stimulusColor = "";
+                    
+                if (currentStimulus.Contains("left"))
+                {
+                    stimulusSide = "left";
+                }
+                else if (currentStimulus.Contains("right"))
+                {
+                    stimulusSide = "right";
+                }
+
+                if (currentStimulus.Contains("yellow"))
+                {
+                    stimulusColor = "yellow";   //rbg values instead?
+                }
+                else if (currentStimulus.Contains("blue"))
+                {
+                    stimulusColor = "blue";     //rgb values instead?
+                }
+
+                TriggerAudioStimulus(stimulusSide, stimulusColor);
+
+            }
+
+            //Debug.Log("Stimulus activated: " + currentStimulusObj.name + " " + actualTime.ToString());
+
+            //set time when stimulus was triggert
+            currentStimulusTime = currentTime;
+
+            stimulusShown = true;
+
         }
 
         //After stimulus -> wait and check for response
-        else if (currentTime <= currentIsiDuration + stimulusDuration + responseTimeMax)
+        if (currentTime > currentIsiDuration + stimulusDuration)
         {
-            //check for response
+            //activate response
+            if (!responseActive)
+            {
+                responseActive = true;
+            }
 
-            //if response -> Go to next trial
-            NextTrial();
+
+            //check for response
+            if (responseSide != "")
+            {
+                //calculate if response is correct or not? ToDo
+
+                //write lsl marker
+                tempMarkerText = 
+                    "response:" + responseSide + ";" +
+                    "duration:" + currentResponseTime;
+                marker.Write(tempMarkerText);
+                Debug.Log(tempMarkerText);
+
+                //go to next trial
+                NextTrial();
+
+            }
+            
 
         }
-        else if (currentTime > currentIsiDuration + stimulusDuration + responseTimeMax)
+
+        if (currentTime > currentIsiDuration + stimulusDuration + responseTimeMax)
         {
             //response time over
 
@@ -914,8 +984,11 @@ public class ExperimentManager : MonoBehaviour
 
         trialCounter += 1;
 
-
-        //[ToDo] reshuffle and restart stimulus & ISI sequences here?
+        //in wlaking conditions also inkrement sequence counter
+        if (currentConditionNo == 2 || currentConditionNo == 4)
+        {
+            sequenceChunkCounter += 1;
+        }
 
 
         //reset vars
@@ -932,6 +1005,12 @@ public class ExperimentManager : MonoBehaviour
                 //set flag for experiment end and don't start another trial
                 experimentEnd = true;
             }
+            else
+            {
+                //start next trial
+                StartTrial();
+            }
+
         }
         else if (currentConditionNo == 1 || currentConditionNo == 3)
         {
@@ -943,13 +1022,17 @@ public class ExperimentManager : MonoBehaviour
                 experimentEnd = true;
 
             }
+            else
+            {
+                //start next trial
+                StartTrial();
+            }
 
         }
         else
         {
             //start next trial
             StartTrial();
-
         }
 
     }//NextTrial()
@@ -959,25 +1042,80 @@ public class ExperimentManager : MonoBehaviour
     {
         //initializes the start of a trial
 
-        //reset trial time
+        //reset trial vars
         currentTime = 0.0f;
+        stimulusShown = false;
+        responseSide = "";
 
-        //set ISI duration for current trial
-        currentIsiDuration = isiDurations[trialCounter];
+
+        //differentiate between sitting and walking conditions
+        switch (currentConditionNo)
+        {
+            /*
+            case 0: //ST_walking
+                {
+                    break;
+                }*/
+            case 1: //ST_audio
+                {
+                    currentStimulus = audioStimuli[stimuliBlockSequence[trialCounter]];
+
+                    currentIsiDuration = isiDurations[trialCounter];
+
+                    break;
+                }
+            case 2: //DT_audio
+                {
+                    //check if sequence is finished -> start new sequence
+                    if (sequenceChunkCounter >= stimuliBlockSequence.Length)
+                    {
+                        //reshuffle sequences
+                        RandomizeArray.ShuffleArray(stimuliBlockSequence);
+                        RandomizeArray.ShuffleArray(isiDurations);
+
+                        //reset counter
+                        sequenceChunkCounter = 0;
+                    }
+
+                    currentStimulus = audioStimuli[stimuliBlockSequence[sequenceChunkCounter]];
+
+                    currentIsiDuration = isiDurations[sequenceChunkCounter];
+
+                    break;
+                }
+            case 3: //ST_visual
+                {
+                    currentStimulus = visualStimuli[stimuliBlockSequence[trialCounter]];
+
+                    currentIsiDuration = isiDurations[trialCounter];
+
+                    break;
+                }
+            case 4: //DT_visual
+                {
+                    //check if sequence is finished -> start new sequence
+                    if (sequenceChunkCounter >= stimuliBlockSequence.Length)
+                    {
+                        //reshuffle sequence
+                        RandomizeArray.ShuffleArray(stimuliBlockSequence);
+                        RandomizeArray.ShuffleArray(isiDurations);
+
+                        //reset counter
+                        sequenceChunkCounter = 0;
+                    }
+
+                    currentStimulus = visualStimuli[stimuliBlockSequence[sequenceChunkCounter]];
+
+                    currentIsiDuration = isiDurations[sequenceChunkCounter];
+
+                    break;
+                }
+
+        }
+
         //Debug.Log("currentIsiDuration: " + currentIsiDuration.ToString());
 
-
-        //set stimuli for current trial
-        if (currentConditionNo == 1 || currentConditionNo == 2)
-        {
-            //audio
-            currentStimulus = audioStimuli[stimuliBlockSequence[trialCounter]];
-        }
-        else if (currentConditionNo == 3 || currentConditionNo == 4)
-        {
-            //visual
-            currentStimulus = visualStimuli[stimuliBlockSequence[trialCounter]];
-        }
+        
 
         //write trial start marker
         tempMarkerText =
@@ -994,13 +1132,53 @@ public class ExperimentManager : MonoBehaviour
     void TriggerVisualStimulus(string side, string color)
     {
         //triggers a visual stimulus by sending a command to the Raspberry PI
+        //ToDo
+
+        //send lsl marker
+        tempMarkerText =
+            "stimulus:visual" + ";" +
+            "side:" + side + ";" +
+            "color:" + color + ";" +
+            "duration:" + stimulusDuration.ToString();
+        marker.Write(tempMarkerText);
+        Debug.Log("Triggered Visual Stimulus: " + side + " " + color + " " + currentTime.ToString());
 
     }
 
 
     void TriggerAudioStimulus(string side, string pitch)
     {
-        //triggers an audio stimulus by sending a command to the Raspberry PI
+        float stereoPan = 0;
+
+        //triggers an audio stimulus
+        if (side == "left")
+        {
+            stereoPan = -1;
+        }
+        else if (side == "right")
+        {
+            stereoPan = 1;
+        }
+
+        if (pitch == "high")
+        {
+            audioSource_high.panStereo = stereoPan;
+            audioSource_high.Play();
+        }
+        else if (pitch == "low")
+        {
+            audioSource_low.panStereo = stereoPan;
+            audioSource_low.Play();
+        }
+
+        //send lsl marker
+        tempMarkerText =
+            "stimulus:audio" + ";" +
+            "side:" + side + ";" +
+            "pitch:" + pitch + ";" +
+            "duration:" + stimulusDuration.ToString();
+        marker.Write(tempMarkerText);
+        Debug.Log("Playing Audio Stimulus: " + side + " " + pitch + " " + currentTime.ToString());
 
     }
 
@@ -1070,7 +1248,7 @@ public class ExperimentManager : MonoBehaviour
 
 
 
-    bool checkInsideGait()
+    bool CheckInsideGait()
     {
         bool isInside = false;
         //checks if the participant is located inside the OptoGait or not
@@ -1089,19 +1267,21 @@ public class ExperimentManager : MonoBehaviour
     }//checkInsideGait()
 
 
-    string getResponse()
+    public void SetTriggerPressed(string side)
     {
-        string response = "";
-        //checks if the participants did respond and returns the response
+        //set response time and side
+        currentResponseTime = currentTime - currentStimulusTime;
+        responseSide = side;
 
-        //check if left controller button was pressed
+        responseActive = false;         //deactivate response immediately so only one response can be given
 
-        //check if right controller button was pressed
-
-
-        return response;
     }
 
+
+    public bool GetResponseActive()
+    {
+        return responseActive;
+    }
 
    
 

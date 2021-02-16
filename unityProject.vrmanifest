@@ -1,0 +1,16 @@
+{
+  "source": "Unity",
+  "applications": [
+    {
+      "app_key": "application.generated.unity.hearingimpared.exe",
+      "launch_type": "url",
+      "url": "steam://launch/",
+      "action_manifest_path": "E:\\Eigene Dateien\\Benjamin\\TU Berlin BPN\\Betti\\hearing_impaired\\Assets\\StreamingAssets\\SteamVR\\actions.json",
+      "strings": {
+        "en_us": {
+          "name": "Hearing Impared [Testing]"
+        }
+      }
+    }
+  ]
+}
