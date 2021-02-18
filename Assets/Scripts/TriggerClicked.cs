@@ -46,17 +46,17 @@ public class TriggerClicked : MonoBehaviour
         //check if response is active
         if (expManager.GetResponseActive())
         {
-            expManager.SetTriggerPressed(side);
-
             //write lsl marker
             expManager.marker.Write("response: " + side);
             Debug.Log("Response given: " + side);
+
+            expManager.SetTriggerPressed(side);
         }
         else
         {
             //write lsl marker
-            expManager.marker.Write("triggerClicked: " + side);
-            Debug.Log("Trigger clicked: " + side);
+            //expManager.marker.Write("triggerClicked: " + side);
+            //Debug.Log("Trigger clicked: " + side);
         }
 
     }

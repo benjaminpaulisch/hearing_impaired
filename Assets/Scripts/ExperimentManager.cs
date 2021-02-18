@@ -83,6 +83,7 @@ public class ExperimentManager : MonoBehaviour
     private float currentIsiDuration;           //stores individual ISI duration of the current trial
     private string responseSide = "";
     private bool responseActive = false;
+    //public static bool responseActive = false;
 
     // Training specific
     private int trainingRunNo = 0;
@@ -123,11 +124,12 @@ public class ExperimentManager : MonoBehaviour
     // Gameobject handles
     private GameObject mainMenuCanvas, configMenuCanvas, calibrationMenuCanvas,
         buttonTraining, buttonBaselineWalking, buttonBaselineSitting, buttonSittingVisual, buttonSittingAudio, buttonWalkingST, buttonWalkingVisual, buttonWalkingAudio,
-        inputParticipantID, inputParticipantAge, inputParticipantGroup, inputParticipantGender,
-        controllerRight, controllerLeft
+        inputParticipantID, inputParticipantAge, inputParticipantGroup, inputParticipantGender
         ;
 
     public AudioSource audioSource_high, audioSource_low;
+
+    public GameObject controllerLeft, controllerRight;
 
 
 
@@ -168,13 +170,12 @@ public class ExperimentManager : MonoBehaviour
         try
         {
             //try to fetch SteamVR controllers (as they tend to be available a few frames after the start)
-            /*
             if (controllerLeft == null)
             {
                 Debug.Log("Controller (left) is null");
-                controllerRight = GameObject.Find("Controller (left)");
+                controllerLeft = GameObject.Find("Controller (left)");
 
-            }*/
+            }
             if (controllerRight == null)
             {
                 Debug.Log("Controller (right) is null");
@@ -936,12 +937,15 @@ public class ExperimentManager : MonoBehaviour
             if (!responseActive)
             {
                 responseActive = true;
+                print("responseActive: true");
             }
 
 
             //check for response
             if (responseSide != "")
             {
+                print("response at " + currentTime.ToString());
+
                 //calculate if response is correct or not? ToDo
 
                 //write lsl marker
@@ -955,14 +959,12 @@ public class ExperimentManager : MonoBehaviour
                 NextTrial();
 
             }
-            
 
         }
 
         if (currentTime > currentIsiDuration + stimulusDuration + responseTimeMax)
         {
             //response time over
-
             marker.Write("response time over");
             Debug.Log("response time over. " + currentTime.ToString());
 
@@ -993,7 +995,8 @@ public class ExperimentManager : MonoBehaviour
 
         //reset vars
         currentTime = 0;
-
+        responseActive = false;
+        print("responseActive: false");
 
         //check if block end condition is fullfilled
         if (currentConditionNo == 2 || currentConditionNo == 4)
@@ -1272,8 +1275,6 @@ public class ExperimentManager : MonoBehaviour
         //set response time and side
         currentResponseTime = currentTime - currentStimulusTime;
         responseSide = side;
-
-        responseActive = false;         //deactivate response immediately so only one response can be given
 
     }
 
