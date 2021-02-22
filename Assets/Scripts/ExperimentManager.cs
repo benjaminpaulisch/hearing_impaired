@@ -70,6 +70,8 @@ public class ExperimentManager : MonoBehaviour
 
     private string tempMarkerText;
 
+    private Vector3[] corners = new Vector3[4];     //used to store the 4 corner positions of the OptoGait you can put in in the calibration menu
+
 
     // Experiment specific
     private int stWalkingRunNo = 0;
@@ -1285,6 +1287,75 @@ public class ExperimentManager : MonoBehaviour
     }
 
    
+    public void SetCorner(int number)
+    {
+        //this method is executed when pressing a "Set Gait Corner" button in the Calibration menu
+
+        //get position of right controller
+        Vector3 tempPosition = controllerRight.transform.position;
+        tempPosition.y = 0;     //normalize the height for all corners will help calculations for the OptoGaitCube later because there the height is not relevant
+
+        corners[number - 1] = controllerRight.transform.position;
+
+        print("Set corner" + number.ToString() + " position: " + controllerRight.transform.position.ToString());
+
+    }
+
+
+    public void CreateOptoGaitCube()
+    {
+        //this method is executed when pressing the "Create OptoGait Cube" button
+
+        //find centroid of the 4 corners
+        Vector3 centroid = new Vector3();
+        centroid = ((corners[0] + corners[1] + corners[2] + corners[3])/corners.Length);
+
+        print("OptoGait cube centroid: " + centroid.ToString());
+
+        //get length and width
+        float distanceCornersOneTwo = Vector3.Distance(corners[0], corners[1]);
+        float distanceCornersTwoThree = Vector3.Distance(corners[1], corners[2]);
+        float distanceCornersThreeFour = Vector3.Distance(corners[2], corners[3]);
+        float distanceCornersFourOne = Vector3.Distance(corners[3], corners[0]);
+
+        /*
+        print("distance corners 1-2: " + distanceCornersOneTwo.ToString());
+        print("distance corners 2-3: " + distanceCornersTwoThree.ToString());
+        print("distance corners 3-4: " + distanceCornersThreeFour.ToString());
+        print("distance corners 4-1: " + distanceCornersFourOne.ToString());
+        */
+
+        //average opposite distances:
+        float length = (distanceCornersOneTwo + distanceCornersThreeFour) / 2;
+        float width = (distanceCornersTwoThree + distanceCornersFourOne) / 2;
+
+        //print("length: " + length.ToString());
+        //print("width: " + width.ToString());
+
+
+        //calculate angle:
+        //algorithm from Timo:
+        Vector2 x1 = new Vector2(corners[0].x, corners[0].z);
+        Vector2 x2 = new Vector2(corners[1].x, corners[1].z);
+        //print("x1:" + x1.ToString() + " x2:" + x2.ToString());
+
+        Vector2 vec1 = x2 - x1;
+        Vector2 vec2 = new Vector2(0, 1);
+        //print("vec1:" + vec1.ToString() + " vec2:" + vec2.ToString());
+
+        float angle = Vector2.SignedAngle(vec1, vec2);
+        //print("angle: " + angle.ToString());
+
+        Vector3 axis = Vector3.zero;
+
+
+        //create and position object
+        GameObject optoGaitCube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        optoGaitCube.transform.position = centroid;
+        optoGaitCube.transform.localScale = new Vector3(width, 1, length);     //height is not relevant
+        optoGaitCube.transform.eulerAngles = new Vector3(0f, angle, 0f);
+
+    }
 
 
     static string BoolToString(bool b)
