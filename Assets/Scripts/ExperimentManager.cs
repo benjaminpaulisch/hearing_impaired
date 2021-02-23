@@ -126,7 +126,8 @@ public class ExperimentManager : MonoBehaviour
     // Gameobject handles
     private GameObject mainMenuCanvas, configMenuCanvas, calibrationMenuCanvas,
         buttonTraining, buttonBaselineWalking, buttonBaselineSitting, buttonSittingVisual, buttonSittingAudio, buttonWalkingST, buttonWalkingVisual, buttonWalkingAudio,
-        inputParticipantID, inputParticipantAge, inputParticipantGroup, inputParticipantGender
+        inputParticipantID, inputParticipantAge, inputParticipantGroup, inputParticipantGender,
+        optoGait
         ;
 
     public AudioSource audioSource_high, audioSource_low;
@@ -159,6 +160,7 @@ public class ExperimentManager : MonoBehaviour
         inputParticipantGender = GameObject.Find("DropdownParticipantGender");
         //controllerLeft = GameObject.Find("Controller (left)");
         controllerRight = GameObject.Find("Controller (right)");
+        optoGait = GameObject.Find("OptoGait");
 
         // start the Main Menu:
         StartMainMenu();
@@ -1350,10 +1352,17 @@ public class ExperimentManager : MonoBehaviour
 
 
         //create and position object
-        GameObject optoGaitCube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        optoGaitCube.transform.position = centroid;
-        optoGaitCube.transform.localScale = new Vector3(width, 1, length);     //height is not relevant
-        optoGaitCube.transform.eulerAngles = new Vector3(0f, angle, 0f);
+        //GameObject optoGaitCube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        optoGait.transform.position = new Vector3(centroid.x, 0.1f, centroid.z);    //move to ground
+        optoGait.transform.localScale = new Vector3(width, 0.2f, length);     //height is not relevant
+        optoGait.transform.eulerAngles = new Vector3(0f, angle, 0f);
+
+        //change color
+        //optoGaitCube.GetComponent<MeshRenderer>().material.color = Color.yellow;
+
+        //resize and position collider
+        //optoGaitCube.GetComponent<BoxCollider>().size = new Vector3(1, 10, 1);
+        //optoGaitCube.GetComponent<BoxCollider>().center = new Vector3(0, 4.5f, 0);
 
     }
 
