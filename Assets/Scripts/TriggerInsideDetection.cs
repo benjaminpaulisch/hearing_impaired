@@ -21,21 +21,21 @@ public class TriggerInsideDetection : MonoBehaviour
     
     private void OnTriggerEnter(Collider other)
     {
-        expmanager.IncrementInsideGaitCounter();
-
         //lsl marker
         expmanager.marker.Write(other.name + " entered OptoGait object");
         print(other.name + " entered OptoGait object");
+
+        expmanager.IncrementInsideGaitCounter();
 
     }
 
     private void OnTriggerExit(Collider other)
     {
-        expmanager.DecrementInsideGaitCounter();
-
         //lsl marker
         expmanager.marker.Write(other.name + " exited OptoGait object");
         print(other.name + " exited OptoGait object");
+
+        expmanager.DecrementInsideGaitCounter();
 
     }
 

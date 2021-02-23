@@ -257,14 +257,13 @@ public class ExperimentManager : MonoBehaviour
                             {
                                 //single task sitting conditions
                                 InitExperimentSitting();
+                                experimentStarted = true;
                             }
                             else if (currentConditionNo == 2 || currentConditionNo == 4)
                             {
                                 //dual task walking conditions
                                 InitExperimentWalking();
                             }
-
-                            experimentStarted = true;
                         }
                         else
                         {
@@ -582,7 +581,6 @@ public class ExperimentManager : MonoBehaviour
         isiDurations = CreateDurationsArray(stimuliBaseSequence.Length * trialsWalkingChunkMultiplier, isiDurationAvg, isiDurationVariation);
 
 
-
         //write experiment start marker
         tempMarkerText =
             "experiment:start;" +
@@ -615,9 +613,6 @@ public class ExperimentManager : MonoBehaviour
 
 
         expInitRun = true;
-
-        //start first trial
-        StartTrial();
 
     }//InitExperimentWalking()
 
@@ -773,6 +768,48 @@ public class ExperimentManager : MonoBehaviour
         //Debug.Log("RunExperiment()");
         //Debug.Log("experimentStarted: " + BoolToString(experimentStarted));
 
+
+        // ### For all walking conditions: check if inside gait first and only start trial if new inside
+        if (currentConditionNo == 0 || currentConditionNo == 2 || currentConditionNo == 4)
+        {
+
+            if (insideGaitCounter == 2)
+            {
+                //check if it's a new inside gait
+                if (!experimentStarted)
+                {
+                    // If exp was not started before we have a new inside gait!
+                    // Then we need to start a new trial
+                    StartTrial();
+
+                }
+
+                experimentStarted = true;
+
+            }
+            else
+            {
+                //if not inside gait
+
+                //abort current trial if it's a new outside gait
+                if (experimentStarted)
+                {
+                    //abort current trial
+                    experimentStarted = false;
+
+                    //lsl marker
+                    marker.Write("trialAbort:" + trialCounter.ToString());
+                    Debug.Log("trial aborted! TrialNo:" + trialCounter.ToString());
+
+                    //go to next trial
+                    NextTrial();
+
+                }
+            }
+
+        }
+
+
         if (experimentStarted)
         {
             //update currentTime (adding the time taken to render last frame)
@@ -784,12 +821,17 @@ public class ExperimentManager : MonoBehaviour
                 //single task walking
                 if (gaitPassCounter < gaitPassesPerBlock)
                 {
+                    /*
                     //check if participant is inside OptoGait
                     //if (CheckInsideGait())
                     if (insideGaitCounter == 2)
                     {
                         //extra method or RunTrial()?
                     }
+                    */
+
+                    //extra method or RunTrial()?
+
                 }
             } 
            else if (currentConditionNo == 2 || currentConditionNo == 4)
@@ -797,12 +839,7 @@ public class ExperimentManager : MonoBehaviour
                 //dual task walking conditions
                 if (gaitPassCounter < gaitPassesPerBlock)
                 {
-                    //check if participant is inside OptoGait
-                    //if (CheckInsideGait())
-                    if (insideGaitCounter == 2)
-                    {
-                        RunTrial();
-                    }
+                    RunTrial();
                 }
             }
             else if (currentConditionNo == 1 || currentConditionNo == 3 )      
@@ -993,7 +1030,7 @@ public class ExperimentManager : MonoBehaviour
 
         trialCounter += 1;
 
-        //in wlaking conditions also inkrement sequence counter
+        //in walking conditions also increment sequence counter
         if (currentConditionNo == 2 || currentConditionNo == 4)
         {
             sequenceChunkCounter += 1;
@@ -1001,7 +1038,7 @@ public class ExperimentManager : MonoBehaviour
 
 
         //reset vars
-        currentTime = 0;
+        currentTime = 0.0f;
         responseActive = false;
         print("responseActive: false");
 
@@ -1009,7 +1046,7 @@ public class ExperimentManager : MonoBehaviour
         if (currentConditionNo == 2 || currentConditionNo == 4)
         {
             //dual task walking conditions
-            if (gaitPassCounter == gaitPassesPerBlock)
+            if (gaitPassCounter > gaitPassesPerBlock)
             {
 
                 //set flag for experiment end and don't start another trial
@@ -1017,8 +1054,11 @@ public class ExperimentManager : MonoBehaviour
             }
             else
             {
-                //start next trial
-                StartTrial();
+                //start next trial if exp is running (if NOT we could be ouside gait and don't want to start a new trial!)
+                if (experimentStarted)
+                {
+                    StartTrial();
+                }
             }
 
         }
@@ -1039,11 +1079,13 @@ public class ExperimentManager : MonoBehaviour
             }
 
         }
+        /*
         else
         {
             //start next trial
             StartTrial();
         }
+        */
 
     }//NextTrial()
 
@@ -1378,6 +1420,18 @@ public class ExperimentManager : MonoBehaviour
         //lsl marker
         marker.Write("incremented insideGaitCounter to " + insideGaitCounter.ToString());
         print("incremented insideGaitCounter to " + insideGaitCounter.ToString());
+
+        //check if new gait pass:
+        if (insideGaitCounter == 2)
+        {
+            //increment gait pass counter
+            gaitPassCounter += 1;
+            
+            //lsl marker
+            marker.Write("incremented gaitPassCounter to " + gaitPassCounter.ToString());
+            print("incremented gaitPassCounter to " + gaitPassCounter.ToString());
+
+        }
 
     }
 
