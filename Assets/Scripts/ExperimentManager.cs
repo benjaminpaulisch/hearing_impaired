@@ -289,7 +289,28 @@ public class ExperimentManager : MonoBehaviour
                         }
                         else if (!baselineInitRun)
                         {
-                            
+                            //initialize baseline
+                            InitBaseline();
+                        }
+                        else
+                        {
+                            //Run baseline
+                            if (!baselineEnd)
+                            {
+                                currentTime += Time.deltaTime;
+
+                                if (currentTime > baselineDuration)
+                                {
+                                    baselineEnd = true;
+
+                                    //end of baseline
+                                    marker.Write("baseline:end");
+                                    print("baseline:end");
+
+                                    //Go back to main menu
+                                    StartMainMenu();
+                                }
+                            }
                         }
                         break;
                     }
@@ -314,6 +335,10 @@ public class ExperimentManager : MonoBehaviour
         //This method is used for starting the main menu.
         Debug.Log("Starting Main Menu");
         programStatus = 0;
+
+        expInitRun = false;
+        baselineInitRun = false;
+        trainingInitRun = false;
 
         //activate/deactivate GameObjects
         mainMenuCanvas.SetActive(true);
@@ -620,9 +645,11 @@ public class ExperimentManager : MonoBehaviour
     void InitBaseline()
     {
         //supposed to only run once in the beginning of a baseline
-        baselineEnd = false;
 
-        if (currentConditionNo == 6)
+        baselineEnd = false;
+        currentTime = 0;
+
+        if (currentConditionNo == 5)
         {
             baselineSitRunNo += 1;
 
@@ -634,7 +661,7 @@ public class ExperimentManager : MonoBehaviour
             "duration:" + baselineDuration.ToString();
 
         }
-        else if (currentConditionNo == 7)
+        else if (currentConditionNo == 6)
         {
             baselineWalkRunNo += 1;
 
@@ -1431,6 +1458,9 @@ public class ExperimentManager : MonoBehaviour
             marker.Write("incremented gaitPassCounter to " + gaitPassCounter.ToString());
             print("incremented gaitPassCounter to " + gaitPassCounter.ToString());
 
+            //change color of optogait object
+            optoGait.GetComponent<MeshRenderer>().material.color = Color.green;
+
         }
 
     }
@@ -1442,6 +1472,9 @@ public class ExperimentManager : MonoBehaviour
         //lsl marker
         marker.Write("decremented insideGaitCounter to " + insideGaitCounter.ToString());
         print("decremented insideGaitCounter to " + insideGaitCounter.ToString());
+
+        //change color of optogait object
+        optoGait.GetComponent<MeshRenderer>().material.color = Color.yellow;
 
     }
 
