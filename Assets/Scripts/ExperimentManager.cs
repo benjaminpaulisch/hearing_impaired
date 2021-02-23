@@ -58,6 +58,7 @@ public class ExperimentManager : MonoBehaviour
     private Vector3 gaitCornerPositionTwo;
     private Vector3 gaitCornerPositionTree;
     private Vector3 gaitCornerPositionFour;
+    private int insideGaitCounter = 0;              //used to store the amount of controllers inside OptoGait object collider
 
     private float currentTime = 0;                  //current time value during a trial
     private float currentStimulusTime = 0;          //the time value when the stimulus was shown during the current trial
@@ -784,7 +785,8 @@ public class ExperimentManager : MonoBehaviour
                 if (gaitPassCounter < gaitPassesPerBlock)
                 {
                     //check if participant is inside OptoGait
-                    if (CheckInsideGait())
+                    //if (CheckInsideGait())
+                    if (insideGaitCounter == 2)
                     {
                         //extra method or RunTrial()?
                     }
@@ -796,7 +798,8 @@ public class ExperimentManager : MonoBehaviour
                 if (gaitPassCounter < gaitPassesPerBlock)
                 {
                     //check if participant is inside OptoGait
-                    if (CheckInsideGait())
+                    //if (CheckInsideGait())
+                    if (insideGaitCounter == 2)
                     {
                         RunTrial();
                     }
@@ -1254,7 +1257,7 @@ public class ExperimentManager : MonoBehaviour
     }//CreateDurationsArray()
 
 
-
+    /*
     bool CheckInsideGait()
     {
         bool isInside = false;
@@ -1268,10 +1271,11 @@ public class ExperimentManager : MonoBehaviour
         {
             isInside = false;
         }
-        */
+        *
         return isInside;
 
     }//checkInsideGait()
+    */
 
 
     public void SetTriggerPressed(string side)
@@ -1363,6 +1367,27 @@ public class ExperimentManager : MonoBehaviour
         //resize and position collider
         //optoGaitCube.GetComponent<BoxCollider>().size = new Vector3(1, 10, 1);
         //optoGaitCube.GetComponent<BoxCollider>().center = new Vector3(0, 4.5f, 0);
+
+    }
+
+
+    public void IncrementInsideGaitCounter()
+    {
+        insideGaitCounter += 1;
+
+        //lsl marker
+        marker.Write("incremented insideGaitCounter to " + insideGaitCounter.ToString());
+        print("incremented insideGaitCounter to " + insideGaitCounter.ToString());
+
+    }
+
+    public void DecrementInsideGaitCounter()
+    {
+        insideGaitCounter -= 1;
+
+        //lsl marker
+        marker.Write("decremented insideGaitCounter to " + insideGaitCounter.ToString());
+        print("decremented insideGaitCounter to " + insideGaitCounter.ToString());
 
     }
 
