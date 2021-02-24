@@ -252,6 +252,7 @@ public class ExperimentManager : MonoBehaviour
                             {
                                 //single task walking
                                 InitWalkingST();
+                                experimentStarted = true;
                             }
                             else if (currentConditionNo == 1 || currentConditionNo == 3)
                             {
@@ -753,6 +754,8 @@ public class ExperimentManager : MonoBehaviour
         experimentEnd = false;
         //trialCounter = 0;
         gaitPassCounter = 0;
+
+
         stWalkingRunNo += 1;
 
         //write experiment start marker
@@ -797,7 +800,8 @@ public class ExperimentManager : MonoBehaviour
 
 
         // ### For all walking conditions: check if inside gait first and only start trial if new inside
-        if (currentConditionNo == 0 || currentConditionNo == 2 || currentConditionNo == 4)
+        //if (currentConditionNo == 0 || currentConditionNo == 2 || currentConditionNo == 4)
+        if (currentConditionNo == 2 || currentConditionNo == 4) //not condition ST_walking!
         {
 
             if (insideGaitCounter == 2)
@@ -846,19 +850,11 @@ public class ExperimentManager : MonoBehaviour
             if (currentConditionNo == 0)
             {
                 //single task walking
-                if (gaitPassCounter < gaitPassesPerBlock)
+
+                if (gaitPassCounter > gaitPassesPerBlock)
                 {
-                    /*
-                    //check if participant is inside OptoGait
-                    //if (CheckInsideGait())
-                    if (insideGaitCounter == 2)
-                    {
-                        //extra method or RunTrial()?
-                    }
-                    */
-
-                    //extra method or RunTrial()?
-
+                    //set flag for experiment end
+                    experimentEnd = true;
                 }
             } 
            else if (currentConditionNo == 2 || currentConditionNo == 4)
