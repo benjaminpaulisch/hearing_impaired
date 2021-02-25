@@ -30,7 +30,7 @@ public class ExperimentManager : MonoBehaviour
 
 
     // General vars
-    private string[] conditions = new string[7] { "ST_walking", "ST_audio", "DT_audio", "ST_visual",  "DT_visual", "Baseline_sitting", "Baseline_walking" };
+    private string[] conditions = new string[7] { "ST_walking", "ST_audio", "DT_audio", "ST_visual",  "DT_visual", "BL_sitting", "BL_walking" };
     private int[,] conditionSequences = new int[12, 5] {        //the 12 sequences from the ethics document
         { 0, 1, 2, 3, 4 },      //Sequence 1
         { 0, 1, 4, 3, 2 },      //Sequence 2
@@ -125,9 +125,10 @@ public class ExperimentManager : MonoBehaviour
 
 
     // Gameobject handles
-    private GameObject mainMenuCanvas, configMenuCanvas, calibrationMenuCanvas,
+    private GameObject mainMenuCanvas, configMenuCanvas, calibrationMenuCanvas, desktopInfoCanvas,
         buttonTraining, buttonBaselineWalking, buttonBaselineSitting, buttonSittingVisual, buttonSittingAudio, buttonWalkingST, buttonWalkingVisual, buttonWalkingAudio,
         inputParticipantID, inputParticipantAge, inputParticipantGroup, inputParticipantGender,
+        textCondition, textConditionRunNo, textTrialNo, textGaitPassNo, textTime,
         optoGait
         ;
 
@@ -159,7 +160,13 @@ public class ExperimentManager : MonoBehaviour
         inputParticipantAge = GameObject.Find("InputParticipantAge");
         inputParticipantGroup = GameObject.Find("DropdownParticipantGroup");
         inputParticipantGender = GameObject.Find("DropdownParticipantGender");
-        //controllerLeft = GameObject.Find("Controller (left)");
+        desktopInfoCanvas = GameObject.Find("DesktopInfoCanvas");
+        textCondition = GameObject.Find("TextCondition");
+        textConditionRunNo = GameObject.Find("TextConditionRunNo");
+        textTrialNo = GameObject.Find("TextTrialNo");
+        textGaitPassNo = GameObject.Find("TextGaitPassNo");
+        textTime = GameObject.Find("TextTime");
+        controllerLeft = GameObject.Find("Controller (left)");
         controllerRight = GameObject.Find("Controller (right)");
         optoGait = GameObject.Find("OptoGait");
 
@@ -311,6 +318,21 @@ public class ExperimentManager : MonoBehaviour
                                     //Go back to main menu
                                     StartMainMenu();
                                 }
+                                else
+                                {
+                                    //update desktop info texts
+                                    int tempNo;
+                                    if (currentConditionNo == 5)
+                                    {
+                                        tempNo = baselineSitRunNo;
+                                    }
+                                    else
+                                    {
+                                        tempNo = baselineWalkRunNo;
+                                    }
+
+                                    SetDesktopInfoTexts(conditions[currentConditionNo], tempNo.ToString(), "-", "-", string.Format("{0}:{1:00}", (int)currentTime / 60, (int)currentTime % 60));
+                                }
                             }
                         }
                         break;
@@ -345,6 +367,7 @@ public class ExperimentManager : MonoBehaviour
         mainMenuCanvas.SetActive(true);
         configMenuCanvas.SetActive(false);
         calibrationMenuCanvas.SetActive(false);
+        desktopInfoCanvas.SetActive(false);
 
 
     }//StartMainMenu()
@@ -360,6 +383,7 @@ public class ExperimentManager : MonoBehaviour
         mainMenuCanvas.SetActive(false);
         configMenuCanvas.SetActive(true);
         calibrationMenuCanvas.SetActive(false);
+        desktopInfoCanvas.SetActive(false);
 
 
     }//StartConfiguration()
@@ -444,6 +468,7 @@ public class ExperimentManager : MonoBehaviour
         mainMenuCanvas.SetActive(false);
         configMenuCanvas.SetActive(false);
         calibrationMenuCanvas.SetActive(true);
+        desktopInfoCanvas.SetActive(false);
 
 
     }//StartCalibration()
@@ -460,6 +485,7 @@ public class ExperimentManager : MonoBehaviour
         mainMenuCanvas.SetActive(false);
         configMenuCanvas.SetActive(false);
         calibrationMenuCanvas.SetActive(false);
+        desktopInfoCanvas.SetActive(true);
 
 
     }//StartTraining()
@@ -478,6 +504,7 @@ public class ExperimentManager : MonoBehaviour
         mainMenuCanvas.SetActive(false);
         configMenuCanvas.SetActive(false);
         calibrationMenuCanvas.SetActive(false);
+        desktopInfoCanvas.SetActive(true);
 
     }
 
@@ -495,6 +522,7 @@ public class ExperimentManager : MonoBehaviour
         mainMenuCanvas.SetActive(false);
         configMenuCanvas.SetActive(false);
         calibrationMenuCanvas.SetActive(false);
+        desktopInfoCanvas.SetActive(true);
 
     }//StartExperiment()
 
@@ -509,8 +537,9 @@ public class ExperimentManager : MonoBehaviour
 
         experimentEnd = false;
         trialCounter = 0;
-        int currentConditionCounter;
 
+
+        int currentConditionCounter;
         if (conditions[currentConditionNo].Contains("visual"))
         {
             //create trial sequence for the block
@@ -564,6 +593,10 @@ public class ExperimentManager : MonoBehaviour
         marker.Write(tempMarkerText);
         Debug.Log(tempMarkerText);
 
+
+        //set desktop info texts
+        SetDesktopInfoTexts(conditions[currentConditionNo], currentConditionCounter.ToString(), "", "-" , "-");
+
         expInitRun = true;
 
         //start first trial
@@ -579,11 +612,11 @@ public class ExperimentManager : MonoBehaviour
         experimentEnd = false;
         trialCounter = 0;
         gaitPassCounter = 0;
-        int currentConditionCounter;
 
-        
+
         //Create trial sequence: in walking conditions we don't know the amount of trials geforehand so we calculate the trial sequence and isi durations in chunks
         //During the block we always check if we are at the end of the sequence and then randomize the sequence anew and reset start the sequence from the beginning
+        int currentConditionCounter;
         if (conditions[currentConditionNo].Contains("visual"))
         {
             //create trial sequence for the block
@@ -637,6 +670,8 @@ public class ExperimentManager : MonoBehaviour
         marker.Write(tempMarkerText);
         Debug.Log(tempMarkerText);
 
+        //set desktop info texts
+        SetDesktopInfoTexts(conditions[currentConditionNo], currentConditionCounter.ToString(), "", "", "-");
 
         expInitRun = true;
 
@@ -650,31 +685,27 @@ public class ExperimentManager : MonoBehaviour
         baselineEnd = false;
         currentTime = 0;
 
+        int currentConditionCounter;
         if (currentConditionNo == 5)
         {
             baselineSitRunNo += 1;
-
-            //write baseline start marker
-            tempMarkerText =
-            "baseline:start;" +
-            "condition:" + conditions[currentConditionNo] + ";" +
-            "runNo:" + baselineSitRunNo.ToString() + ";" +
-            "duration:" + baselineDuration.ToString();
+            currentConditionCounter = baselineSitRunNo;
 
         }
-        else if (currentConditionNo == 6)
+        else //currentConditionNo == 6
         {
             baselineWalkRunNo += 1;
-
-            //write baseline start marker
-            tempMarkerText =
-            "baseline:start;" +
-            "condition:" + conditions[currentConditionNo] + ";" +
-            "runNo:" + baselineWalkRunNo.ToString() + ";" +
-            "duration:" + baselineDuration.ToString();
+            currentConditionCounter = baselineWalkRunNo;
 
         }
 
+
+        //write baseline start marker
+        tempMarkerText =
+        "baseline:start;" +
+        "condition:" + conditions[currentConditionNo] + ";" +
+        "runNo:" + currentConditionCounter.ToString() + ";" +
+        "duration:" + baselineDuration.ToString();
         marker.Write(tempMarkerText);
         Debug.Log(tempMarkerText);
 
@@ -695,6 +726,11 @@ public class ExperimentManager : MonoBehaviour
             "gaitCornerPos4:" + gaitCornerPositionFour.ToString();
         marker.Write(tempMarkerText);
         Debug.Log(tempMarkerText);
+
+
+        //set desktop info texts
+        SetDesktopInfoTexts(conditions[currentConditionNo], currentConditionCounter.ToString(), "-", "-", string.Format("{0}:{1:00}", (int)currentTime / 60, (int)currentTime % 60));
+
 
         baselineInitRun = true;
 
@@ -738,6 +774,11 @@ public class ExperimentManager : MonoBehaviour
         marker.Write(tempMarkerText);
         Debug.Log(tempMarkerText);
         */
+
+
+        //set desktop info texts
+        SetDesktopInfoTexts(conditions[currentConditionNo], trainingRunNo.ToString(), "", "-", "-");
+
 
         expInitRun = true;
 
@@ -785,6 +826,11 @@ public class ExperimentManager : MonoBehaviour
             "gaitCornerPos4:" + gaitCornerPositionFour.ToString();
         marker.Write(tempMarkerText);
         Debug.Log(tempMarkerText);
+
+
+        //set desktop info texts
+        SetDesktopInfoTexts(conditions[currentConditionNo], stWalkingRunNo.ToString(), "-", "", "-");
+
 
         expInitRun = true;
 
@@ -856,14 +902,32 @@ public class ExperimentManager : MonoBehaviour
                     //set flag for experiment end
                     experimentEnd = true;
                 }
+
+                //update desktop info texts
+                SetDesktopInfoTexts(conditions[currentConditionNo], stWalkingRunNo.ToString(), "-", gaitPassCounter.ToString(), "-");
+
             } 
-           else if (currentConditionNo == 2 || currentConditionNo == 4)
+            else if (currentConditionNo == 2 || currentConditionNo == 4)
             {
                 //dual task walking conditions
                 if (gaitPassCounter < gaitPassesPerBlock)
                 {
                     RunTrial();
                 }
+
+                //update desktop info texts
+                int tempRunNo;
+                if (currentConditionNo == 2)
+                {
+                    tempRunNo = dtAudioRunNo;
+                }
+                else
+                {
+                    tempRunNo = dtVisualRunNo;
+                }
+
+                SetDesktopInfoTexts(conditions[currentConditionNo], tempRunNo.ToString(), trialCounter.ToString(), gaitPassCounter.ToString(), "-");
+
             }
             else if (currentConditionNo == 1 || currentConditionNo == 3 )      
             {
@@ -872,6 +936,20 @@ public class ExperimentManager : MonoBehaviour
                 {
                     RunTrial();
                 }
+
+                //update desktop info texts
+                int tempRunNo;
+                if (currentConditionNo == 1)
+                {
+                    tempRunNo = stAudioRunNo;
+                }
+                else
+                {
+                    tempRunNo = stVisualRunNo;
+                }
+
+                SetDesktopInfoTexts(conditions[currentConditionNo], tempRunNo.ToString(), trialCounter.ToString(), "-", "-");
+
             }
 
             // after all trials are finished
@@ -1471,6 +1549,17 @@ public class ExperimentManager : MonoBehaviour
 
         //change color of optogait object
         optoGait.GetComponent<MeshRenderer>().material.color = Color.yellow;
+
+    }
+
+
+    private void SetDesktopInfoTexts(string condition, string runNo, string trialNo, string gaitPassNo, string time)
+    {
+        textCondition.GetComponent<Text>().text = condition;
+        textConditionRunNo.GetComponent<Text>().text = runNo;
+        textTrialNo.GetComponent<Text>().text = trialNo;
+        textGaitPassNo.GetComponent<Text>().text = gaitPassNo;
+        textTime.GetComponent<Text>().text = time;
 
     }
 
