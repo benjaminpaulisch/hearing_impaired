@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using Assets.LSL4Unity.Scripts; // reference the LSL4Unity namespace to get access to all classes
-
+using System.Collections.Generic;
 
 public class ExperimentManager : MonoBehaviour
 {
@@ -173,6 +173,7 @@ public class ExperimentManager : MonoBehaviour
         // start the Main Menu:
         StartMainMenu();
 
+
     }//start()
 
 
@@ -186,7 +187,6 @@ public class ExperimentManager : MonoBehaviour
             {
                 Debug.Log("Controller (left) is null");
                 controllerLeft = GameObject.Find("Controller (left)");
-
             }
             if (controllerRight == null)
             {
@@ -1561,6 +1561,19 @@ public class ExperimentManager : MonoBehaviour
         textGaitPassNo.GetComponent<Text>().text = gaitPassNo;
         textTime.GetComponent<Text>().text = time;
 
+    }
+
+
+    public void VibrateController(string side)
+    {
+        if (side.Contains("left"))
+        {
+            SteamVR_Controller.Input((int)controllerLeft.GetComponent<SteamVR_TrackedController>().controllerIndex).TriggerHapticPulse(3999);
+        }
+        else if (side.Contains("right"))
+        {
+            SteamVR_Controller.Input((int)controllerRight.GetComponent<SteamVR_TrackedController>().controllerIndex).TriggerHapticPulse(3999);
+        }
     }
 
 
