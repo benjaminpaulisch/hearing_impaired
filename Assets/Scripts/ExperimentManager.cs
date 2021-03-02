@@ -14,8 +14,9 @@ public class ExperimentManager : MonoBehaviour
 
     [Header("Experiment specific")]
     public int gaitPassesPerBlock = 35;             
-    public int trialsSittingPerBlock = 100;
-    public int trialsWalkingChunkMultiplier = 10;   //will be multiplied with the amount of different stimuli to get a chunk size for the walking conditions
+    public int trialsPerBlock = 100;
+    public int trialsPerGaitPass = 5;               //the maximum number of trials possible during each gait pass
+    //public int trialsWalkingChunkMultiplier = 10;   //will be multiplied with the amount of different stimuli to get a chunk size for the walking conditions
 
     [Header("Training specific")]
     public int trialsPerCondTraining = 5;
@@ -58,7 +59,7 @@ public class ExperimentManager : MonoBehaviour
     private Vector3 gaitCornerPositionTwo;
     private Vector3 gaitCornerPositionTree;
     private Vector3 gaitCornerPositionFour;
-    private int insideGaitCounter = 0;              //used to store the amount of controllers inside OptoGait object collider
+    private int controllerInsideGaitCounter = 0;              //used to store the amount of controllers inside OptoGait object collider
 
     private float currentTime = 0;                  //current time value during a trial
     private float currentStimulusTime = 0;          //the time value when the stimulus was shown during the current trial
@@ -82,7 +83,8 @@ public class ExperimentManager : MonoBehaviour
     private int dtVisualRunNo = 0;
     private float[] isiDurations;
     private int trialCounter = 0;
-    private int sequenceChunkCounter = 0;       //used only in walking conditions for isi and trials sequences
+    private int currentTrialInGait = 0;
+    //private int sequenceChunkCounter = 0;       //used only in walking conditions for isi and trials sequences
     private float currentIsiDuration;           //stores individual ISI duration of the current trial
     private string responseSide = "";
     private bool responseActive = false;
@@ -108,6 +110,8 @@ public class ExperimentManager : MonoBehaviour
     private bool experimentStarted = false;
     private bool expInitRun = false;
     private bool experimentEnd = false;
+    private bool responseTimeOver = false;
+    private bool maxGaitTrialsReached = false;
 
     //training logic handler
     private bool trainingStarted = false;
@@ -128,7 +132,7 @@ public class ExperimentManager : MonoBehaviour
     private GameObject mainMenuCanvas, configMenuCanvas, calibrationMenuCanvas, desktopInfoCanvas,
         buttonTraining, buttonBaselineWalking, buttonBaselineSitting, buttonSittingVisual, buttonSittingAudio, buttonWalkingST, buttonWalkingVisual, buttonWalkingAudio,
         inputParticipantID, inputParticipantAge, inputParticipantGroup, inputParticipantGender,
-        textCondition, textConditionRunNo, textTrialNo, textGaitPassNo, textTime,
+        textCondition, textConditionRunNo, textTrialNo, textTrialInGaitNo,  textGaitPassNo, textTime,
         optoGait
         ;
 
@@ -164,6 +168,7 @@ public class ExperimentManager : MonoBehaviour
         textCondition = GameObject.Find("TextCondition");
         textConditionRunNo = GameObject.Find("TextConditionRunNo");
         textTrialNo = GameObject.Find("TextTrialNo");
+        textTrialInGaitNo = GameObject.Find("TextTrialInGaitNo");
         textGaitPassNo = GameObject.Find("TextGaitPassNo");
         textTime = GameObject.Find("TextTime");
         controllerLeft = GameObject.Find("Controller (left)");
@@ -261,16 +266,16 @@ public class ExperimentManager : MonoBehaviour
                                 InitWalkingST();
                                 experimentStarted = true;
                             }
-                            else if (currentConditionNo == 1 || currentConditionNo == 3)
+                            else
                             {
-                                //single task sitting conditions
-                                InitExperimentSitting();
-                                experimentStarted = true;
-                            }
-                            else if (currentConditionNo == 2 || currentConditionNo == 4)
-                            {
-                                //dual task walking conditions
-                                InitExperimentWalking();
+                                //single & dual dual task conditions
+                                InitExperiment();
+
+                                //only in single task sitting conditions
+                                if (currentConditionNo == 1 || currentConditionNo == 3)
+                                {
+                                    experimentStarted = true;
+                                }
                             }
                         }
                         else
@@ -331,7 +336,7 @@ public class ExperimentManager : MonoBehaviour
                                         tempNo = baselineWalkRunNo;
                                     }
 
-                                    SetDesktopInfoTexts(conditions[currentConditionNo], tempNo.ToString(), "-", "-", string.Format("{0}:{1:00}", (int)currentTime / 60, (int)currentTime % 60));
+                                    SetDesktopInfoTexts(conditions[currentConditionNo], tempNo.ToString(), "-", "-", "-", string.Format("{0}:{1:00}", (int)currentTime / 60, (int)currentTime % 60));
                                 }
                             }
                         }
@@ -527,8 +532,10 @@ public class ExperimentManager : MonoBehaviour
     }//StartExperiment()
 
 
-
+    
     //Init methods
+
+    /*
     void InitExperimentSitting()
     {
         //supposed to only run once in the beginning of an experiment run
@@ -543,7 +550,7 @@ public class ExperimentManager : MonoBehaviour
         if (conditions[currentConditionNo].Contains("visual"))
         {
             //create trial sequence for the block
-            stimuliBlockSequence = CreateTrialSequenceArray(trialsSittingPerBlock, stimuliBaseSequence, visualStimuli);
+            stimuliBlockSequence = CreateTrialSequenceArray(trialsPerBlock, stimuliBaseSequence, visualStimuli);
 
             //increment condition counter
             stVisualRunNo += 1;
@@ -552,7 +559,7 @@ public class ExperimentManager : MonoBehaviour
         else
         {
             //create trial sequence for the block
-            stimuliBlockSequence = CreateTrialSequenceArray(trialsSittingPerBlock, stimuliBaseSequence, audioStimuli);
+            stimuliBlockSequence = CreateTrialSequenceArray(trialsPerBlock, stimuliBaseSequence, audioStimuli);
 
             //increment condition counter
             stAudioRunNo += 1;
@@ -560,7 +567,7 @@ public class ExperimentManager : MonoBehaviour
         }
 
         //Create isi durations for the block
-        isiDurations = CreateDurationsArray(trialsSittingPerBlock, isiDurationAvg, isiDurationVariation);
+        isiDurations = CreateDurationsArray(trialsPerBlock, isiDurationAvg, isiDurationVariation);
 
 
         //write experiment start marker
@@ -568,7 +575,7 @@ public class ExperimentManager : MonoBehaviour
             "experiment:start;" +
             "condition:" + conditions[currentConditionNo] + ";" +
             "runNo:" + currentConditionCounter.ToString() + ";" +
-            "trialsTotal:" + trialsSittingPerBlock.ToString() + ";" +
+            "trialsTotal:" + trialsPerBlock.ToString() + ";" +
             "isiDurationAvg:" + isiDurationAvg.ToString() + ";" +
             "isiDurationVariation:" + isiDurationVariation.ToString() + ";" +
             "responseTimeMax:" + responseTimeMax.ToString();
@@ -620,7 +627,7 @@ public class ExperimentManager : MonoBehaviour
         if (conditions[currentConditionNo].Contains("visual"))
         {
             //create trial sequence for the block
-            stimuliBlockSequence = CreateTrialSequenceArray(visualStimuli.Length * trialsWalkingChunkMultiplier, stimuliBaseSequence, visualStimuli);
+            stimuliBlockSequence = CreateTrialSequenceArray(trialsPerBlock, stimuliBaseSequence, visualStimuli);
 
             //increment condition counter
             dtVisualRunNo += 1;
@@ -629,7 +636,7 @@ public class ExperimentManager : MonoBehaviour
         else
         {
             //create trial sequence for the block
-            stimuliBlockSequence = CreateTrialSequenceArray(audioStimuli.Length * trialsWalkingChunkMultiplier, stimuliBaseSequence, audioStimuli);
+            stimuliBlockSequence = CreateTrialSequenceArray(trialsPerBlock, stimuliBaseSequence, audioStimuli);
 
             //increment condition counter
             dtAudioRunNo += 1;
@@ -637,7 +644,7 @@ public class ExperimentManager : MonoBehaviour
         }
 
         //Create isi durations for the block
-        isiDurations = CreateDurationsArray(stimuliBaseSequence.Length * trialsWalkingChunkMultiplier, isiDurationAvg, isiDurationVariation);
+        isiDurations = CreateDurationsArray(trialsPerBlock, isiDurationAvg, isiDurationVariation);
 
 
         //write experiment start marker
@@ -676,6 +683,114 @@ public class ExperimentManager : MonoBehaviour
         expInitRun = true;
 
     }//InitExperimentWalking()
+    */
+
+    void InitExperiment()
+    {
+        //supposed to only run once in the beginning of an experiment run
+
+        Debug.Log("InitExperiment()");
+
+        experimentEnd = false;
+        trialCounter = 0;
+        gaitPassCounter = 0;
+        maxGaitTrialsReached = false;
+
+        string tempGaitPasses = "-";
+
+        // increment condition counter
+        int currentConditionCounter;
+        if (currentConditionNo == 1)
+        {
+            stAudioRunNo += 1;
+            currentConditionCounter = stAudioRunNo;
+        }
+        else if (currentConditionNo == 2)
+        {
+            dtAudioRunNo += 1;
+            currentConditionCounter = dtAudioRunNo;
+
+            tempGaitPasses = gaitPassesPerBlock.ToString();
+        }
+        else if (currentConditionNo == 3)
+        {
+            stVisualRunNo += 1;
+            currentConditionCounter = stVisualRunNo;
+        }
+        else //(currentConditionNo == 4)
+        {
+            dtVisualRunNo += 1;
+            currentConditionCounter = dtVisualRunNo;
+
+            tempGaitPasses = gaitPassesPerBlock.ToString();
+        }
+
+
+        //create trial sequence for the block
+        if (conditions[currentConditionNo].Contains("visual"))
+        {
+            
+            stimuliBlockSequence = CreateTrialSequenceArray(trialsPerBlock, stimuliBaseSequence, visualStimuli);
+        }
+        else
+        {
+            //create trial sequence for the block
+            stimuliBlockSequence = CreateTrialSequenceArray(trialsPerBlock, stimuliBaseSequence, audioStimuli);
+        }
+
+
+        //Create isi durations for the block
+        isiDurations = CreateDurationsArray(trialsPerBlock, isiDurationAvg, isiDurationVariation);
+
+
+
+
+        //write experiment start marker
+        tempMarkerText =
+            "experimentBlock:start;" +
+            "condition:" + conditions[currentConditionNo] + ";" +
+            "runNo:" + currentConditionCounter.ToString() + ";" +
+            "trialsTotal:" + trialsPerBlock.ToString() + ";" +
+            "gaitsTotal:" + tempGaitPasses + ";" +
+            "isiDurationAvg:" + isiDurationAvg.ToString() + ";" +
+            "isiDurationVariation:" + isiDurationVariation.ToString() + ";" +
+            "responseTimeMax:" + responseTimeMax.ToString();
+        marker.Write(tempMarkerText);
+        Debug.Log(tempMarkerText);
+
+        //write participant info (from configuration menu)
+        tempMarkerText =
+            "participantID:" + participantID + ";" +
+            "participantAge:" + participantAge.ToString() + ";" +
+            "participantGroup:" + participantGroup + ";" +
+            "participantGender:" + participantGender;
+        marker.Write(tempMarkerText);
+        Debug.Log(tempMarkerText);
+
+        //write calibration info (from calibration menu)
+        tempMarkerText =
+            "gaitCornerPos1:" + gaitCornerPositionOne.ToString() + ";" +
+            "gaitCornerPos2:" + gaitCornerPositionTwo.ToString() + ";" +
+            "gaitCornerPos3:" + gaitCornerPositionTree.ToString() + ";" +
+            "gaitCornerPos4:" + gaitCornerPositionFour.ToString();
+        marker.Write(tempMarkerText);
+        Debug.Log(tempMarkerText);
+
+
+        //set desktop info texts
+        SetDesktopInfoTexts(conditions[currentConditionNo], currentConditionCounter.ToString(), "", "", "", "-");
+
+        expInitRun = true;
+
+        
+        //start first trial (only in ST conditions!)
+        if (conditions[currentConditionNo].Contains("ST"))
+        {
+            StartTrial();
+        }
+
+    }//InitExperiment()
+
 
 
     void InitBaseline()
@@ -684,6 +799,7 @@ public class ExperimentManager : MonoBehaviour
 
         baselineEnd = false;
         currentTime = 0;
+        maxGaitTrialsReached = false;
 
         int currentConditionCounter;
         if (currentConditionNo == 5)
@@ -729,7 +845,7 @@ public class ExperimentManager : MonoBehaviour
 
 
         //set desktop info texts
-        SetDesktopInfoTexts(conditions[currentConditionNo], currentConditionCounter.ToString(), "-", "-", string.Format("{0}:{1:00}", (int)currentTime / 60, (int)currentTime % 60));
+        SetDesktopInfoTexts(conditions[currentConditionNo], currentConditionCounter.ToString(), "-", "-", "-", string.Format("{0}:{1:00}", (int)currentTime / 60, (int)currentTime % 60));
 
 
         baselineInitRun = true;
@@ -744,6 +860,7 @@ public class ExperimentManager : MonoBehaviour
         trainingEnd = false;
         trialCounter = 0;
         trainingRunNo += 1;
+        maxGaitTrialsReached = false;
 
         /* ToDo
         //write training start marker
@@ -777,7 +894,7 @@ public class ExperimentManager : MonoBehaviour
 
 
         //set desktop info texts
-        SetDesktopInfoTexts(conditions[currentConditionNo], trainingRunNo.ToString(), "", "-", "-");
+        SetDesktopInfoTexts(conditions[currentConditionNo], trainingRunNo.ToString(), "", "", "-", "-");
 
 
         expInitRun = true;
@@ -795,6 +912,7 @@ public class ExperimentManager : MonoBehaviour
         experimentEnd = false;
         //trialCounter = 0;
         gaitPassCounter = 0;
+        maxGaitTrialsReached = false;
 
 
         stWalkingRunNo += 1;
@@ -829,7 +947,7 @@ public class ExperimentManager : MonoBehaviour
 
 
         //set desktop info texts
-        SetDesktopInfoTexts(conditions[currentConditionNo], stWalkingRunNo.ToString(), "-", "", "-");
+        SetDesktopInfoTexts(conditions[currentConditionNo], stWalkingRunNo.ToString(), "-", "-", "", "-");
 
 
         expInitRun = true;
@@ -847,15 +965,16 @@ public class ExperimentManager : MonoBehaviour
 
         // ### For all walking conditions: check if inside gait first and only start trial if new inside
         //if (currentConditionNo == 0 || currentConditionNo == 2 || currentConditionNo == 4)
-        if (currentConditionNo == 2 || currentConditionNo == 4) //not condition ST_walking!
+        if ((currentConditionNo == 2 || currentConditionNo == 4) && !experimentEnd) //not condition ST_walking!
         {
 
-            if (insideGaitCounter == 2)
+            if (controllerInsideGaitCounter == 2)
             {
                 //check if it's a new inside gait
                 if (!experimentStarted)
                 {
                     // If exp was not started before we have a new inside gait!
+
                     // Then we need to start a new trial
                     StartTrial();
 
@@ -874,12 +993,17 @@ public class ExperimentManager : MonoBehaviour
                     //abort current trial
                     experimentStarted = false;
 
-                    //lsl marker
-                    marker.Write("trialAbort:" + trialCounter.ToString());
-                    Debug.Log("trial aborted! TrialNo:" + trialCounter.ToString());
+                    //only abort if max gait trials were not reached
+                    if (!maxGaitTrialsReached)
+                    {
+                        //lsl marker
+                        marker.Write("trialAbort:" + trialCounter.ToString());
+                        Debug.Log("trial aborted! TrialNo:" + trialCounter.ToString());
 
-                    //go to next trial
-                    NextTrial();
+                        //go to next trial
+                        NextTrial();
+                    }
+                    
 
                 }
             }
@@ -887,7 +1011,8 @@ public class ExperimentManager : MonoBehaviour
         }
 
 
-        if (experimentStarted)
+        //if (experimentStarted)
+        if (experimentStarted && !maxGaitTrialsReached && !experimentEnd)     //only if expriment is running and max gait trials have not been reached
         {
             //update currentTime (adding the time taken to render last frame)
             currentTime += Time.deltaTime;
@@ -904,7 +1029,7 @@ public class ExperimentManager : MonoBehaviour
                 }
 
                 //update desktop info texts
-                SetDesktopInfoTexts(conditions[currentConditionNo], stWalkingRunNo.ToString(), "-", gaitPassCounter.ToString(), "-");
+                SetDesktopInfoTexts(conditions[currentConditionNo], stWalkingRunNo.ToString(), "-", "-", gaitPassCounter.ToString(), "-");
 
             } 
             else if (currentConditionNo == 2 || currentConditionNo == 4)
@@ -926,13 +1051,14 @@ public class ExperimentManager : MonoBehaviour
                     tempRunNo = dtVisualRunNo;
                 }
 
-                SetDesktopInfoTexts(conditions[currentConditionNo], tempRunNo.ToString(), trialCounter.ToString(), gaitPassCounter.ToString(), "-");
+                SetDesktopInfoTexts(conditions[currentConditionNo], tempRunNo.ToString(), trialCounter.ToString(), currentTrialInGait.ToString(), gaitPassCounter.ToString(), "-");
 
             }
             else if (currentConditionNo == 1 || currentConditionNo == 3 )      
             {
                 //single task sitting conditions
-                if (trialCounter < trialsSittingPerBlock && !experimentEnd)
+                //if (trialCounter < trialsPerBlock && !experimentEnd)
+                if (trialCounter <= trialsPerBlock && !experimentEnd)
                 {
                     RunTrial();
                 }
@@ -948,35 +1074,36 @@ public class ExperimentManager : MonoBehaviour
                     tempRunNo = stVisualRunNo;
                 }
 
-                SetDesktopInfoTexts(conditions[currentConditionNo], tempRunNo.ToString(), trialCounter.ToString(), "-", "-");
+                SetDesktopInfoTexts(conditions[currentConditionNo], tempRunNo.ToString(), trialCounter.ToString(), "-", "-", "-");
 
-            }
-
-            // after all trials are finished
-            if (experimentEnd)
-            {
-                //write specific end marker
-                if (trainingStarted)
-                {
-                    marker.Write("training:end");
-                    Debug.Log("training:end");
-                }
-                else
-                {
-                    marker.Write("experiment:end");
-                    Debug.Log("experiment:end");
-                }
-
-                //activate experiment end text
-                //end.SetActive(true);
-
-                experimentStarted = false;
-
-                //go to main menu
-                StartMainMenu();
             }
 
         }//if experimentStarted
+
+
+        // after all trials are finished
+        if (experimentEnd)
+        {
+            //write specific end marker
+            if (trainingStarted)
+            {
+                marker.Write("training:end");
+                Debug.Log("training:end");
+            }
+            else
+            {
+                marker.Write("experiment:end");
+                Debug.Log("experiment:end");
+            }
+
+            //activate experiment end text
+            //end.SetActive(true);
+
+            experimentStarted = false;
+
+            //go to main menu
+            StartMainMenu();
+        }
 
     }//RunExperiment()
 
@@ -1100,8 +1227,21 @@ public class ExperimentManager : MonoBehaviour
                 marker.Write(tempMarkerText);
                 Debug.Log(tempMarkerText);
 
+
                 //go to next trial
-                NextTrial();
+                //in walking conditions check trial in gait counter
+                if (currentConditionNo == 2 || currentConditionNo == 4)
+                {
+                    //if max trials in gait is not reached
+                    if (currentTrialInGait < trialsPerGaitPass)
+                    {
+                        NextTrial();
+                    }
+                }
+                else
+                {
+                    NextTrial();
+                }
 
             }
 
@@ -1110,11 +1250,38 @@ public class ExperimentManager : MonoBehaviour
         if (currentTime > currentIsiDuration + stimulusDuration + responseTimeMax)
         {
             //response time over
-            marker.Write("response time over");
-            Debug.Log("response time over. " + currentTime.ToString());
+            /*
+            if (!responseTimeOver) 
+            {
+                responseTimeOver = true;    //to make sure this done only once
+                */
+                //write lsl marker
+                marker.Write("response time over");
+                Debug.Log("response time over. " + currentTime.ToString());
 
-            //go to next trial
-            NextTrial();
+                //go to next trial
+                /*
+                //in walking conditions check trial in gait counter
+                if (currentConditionNo == 2 || currentConditionNo == 4)
+                {
+                    //if max trials in gait is not reached
+                    if (currentTrialInGait < trialsPerGaitPass)
+                    {
+                        NextTrial();
+                    }
+                    else
+                    {
+                        //write lsl marker
+                        marker.Write("Max number of trials in gait reached. Waiting for next gait.");
+                        print("Max number of trials in gait reached. Waiting for next gait.");
+                    }
+                }
+                else
+                {*/
+                    NextTrial();
+                //}
+
+            //}
 
         }
 
@@ -1129,13 +1296,14 @@ public class ExperimentManager : MonoBehaviour
         marker.Write("trialEnd:" + trialCounter.ToString());
         Debug.Log("trialEnd:" + trialCounter.ToString());
 
-        trialCounter += 1;
+        //trialCounter += 1;
 
-        //in walking conditions also increment sequence counter
+        /*
+        //in walking conditions also increment trial in gait counter
         if (currentConditionNo == 2 || currentConditionNo == 4)
         {
-            sequenceChunkCounter += 1;
-        }
+            currentTrialInGait += 1;
+        }*/
 
 
         //reset vars
@@ -1149,16 +1317,27 @@ public class ExperimentManager : MonoBehaviour
             //dual task walking conditions
             if (gaitPassCounter > gaitPassesPerBlock)
             {
-
                 //set flag for experiment end and don't start another trial
                 experimentEnd = true;
             }
             else
             {
-                //start next trial if exp is running (if NOT we could be ouside gait and don't want to start a new trial!)
-                if (experimentStarted)
+                //check if max trials in gait is not reached
+                if (currentTrialInGait < trialsPerGaitPass)
                 {
-                    StartTrial();
+                    //start next trial if exp is running (if NOT we could be ouside gait and don't want to start a new trial!)
+                    if (experimentStarted)
+                    {
+                        StartTrial();
+                    }
+                }
+                else
+                {
+                    maxGaitTrialsReached = true;
+
+                    //write lsl marker
+                    marker.Write("Max number of trials in gait reached. Waiting for next gait.");
+                    print("Max number of trials in gait reached. Waiting for next gait.");
                 }
             }
 
@@ -1166,7 +1345,7 @@ public class ExperimentManager : MonoBehaviour
         else if (currentConditionNo == 1 || currentConditionNo == 3)
         {
             //single task sitting conditions
-            if (trialCounter == trialsSittingPerBlock)
+            if (trialCounter == trialsPerBlock)
             {
 
                 //set flag for experiment end and don't start another trial
@@ -1199,7 +1378,10 @@ public class ExperimentManager : MonoBehaviour
         currentTime = 0.0f;
         stimulusShown = false;
         responseSide = "";
+        responseTimeOver = false;
 
+        //increment trial counter
+        trialCounter += 1;
 
         //differentiate between sitting and walking conditions
         switch (currentConditionNo)
@@ -1211,14 +1393,15 @@ public class ExperimentManager : MonoBehaviour
                 }*/
             case 1: //ST_audio
                 {
-                    currentStimulus = audioStimuli[stimuliBlockSequence[trialCounter]];
+                    currentStimulus = audioStimuli[stimuliBlockSequence[trialCounter-1]];
 
-                    currentIsiDuration = isiDurations[trialCounter];
+                    currentIsiDuration = isiDurations[trialCounter-1];
 
                     break;
                 }
             case 2: //DT_audio
                 {
+                    /*
                     //check if sequence is finished -> start new sequence
                     if (sequenceChunkCounter >= stimuliBlockSequence.Length)
                     {
@@ -1228,24 +1411,30 @@ public class ExperimentManager : MonoBehaviour
 
                         //reset counter
                         sequenceChunkCounter = 0;
-                    }
+                    }*/
 
-                    currentStimulus = audioStimuli[stimuliBlockSequence[sequenceChunkCounter]];
+                    //currentStimulus = audioStimuli[stimuliBlockSequence[sequenceChunkCounter]];
+                    currentStimulus = audioStimuli[stimuliBlockSequence[trialCounter-1]];
 
-                    currentIsiDuration = isiDurations[sequenceChunkCounter];
+                    //currentIsiDuration = isiDurations[sequenceChunkCounter];
+                    currentIsiDuration = isiDurations[trialCounter-1];
+
+                    //increment trial in gait counter
+                    currentTrialInGait += 1;
 
                     break;
                 }
             case 3: //ST_visual
                 {
-                    currentStimulus = visualStimuli[stimuliBlockSequence[trialCounter]];
+                    currentStimulus = visualStimuli[stimuliBlockSequence[trialCounter-1]];
 
-                    currentIsiDuration = isiDurations[trialCounter];
+                    currentIsiDuration = isiDurations[trialCounter-1];
 
                     break;
                 }
             case 4: //DT_visual
                 {
+                    /*
                     //check if sequence is finished -> start new sequence
                     if (sequenceChunkCounter >= stimuliBlockSequence.Length)
                     {
@@ -1255,11 +1444,16 @@ public class ExperimentManager : MonoBehaviour
 
                         //reset counter
                         sequenceChunkCounter = 0;
-                    }
+                    }*/
 
-                    currentStimulus = visualStimuli[stimuliBlockSequence[sequenceChunkCounter]];
+                    //currentStimulus = visualStimuli[stimuliBlockSequence[sequenceChunkCounter]];
+                    currentStimulus = visualStimuli[stimuliBlockSequence[trialCounter-1]];
 
-                    currentIsiDuration = isiDurations[sequenceChunkCounter];
+                    //currentIsiDuration = isiDurations[sequenceChunkCounter];
+                    currentIsiDuration = isiDurations[trialCounter-1];
+
+                    //increment trial in gait counter
+                    currentTrialInGait += 1;
 
                     break;
                 }
@@ -1267,8 +1461,6 @@ public class ExperimentManager : MonoBehaviour
         }
 
         //Debug.Log("currentIsiDuration: " + currentIsiDuration.ToString());
-
-        
 
         //write trial start marker
         tempMarkerText =
@@ -1364,13 +1556,13 @@ public class ExperimentManager : MonoBehaviour
 
         }
 
-        /*
+        
         //Debug: print out the array:
         Debug.Log("Trial sequence:");
         for (int i=0; i< tempTrialTasks.Length; i++)
         {
             Debug.Log(options[tempTrialTasks[i]]);
-        }*/
+        }
 
         return tempTrialTasks;
 
@@ -1385,12 +1577,12 @@ public class ExperimentManager : MonoBehaviour
         float[] tempDurations = new float[arraySize];
 
 
-        //Debug.Log("All durations:");
+        Debug.Log("All durations:");
         for (int i = 0; i < arraySize; i++)
         {
             //the goal here is to get linear distributed values in the range
             tempDurations[i] = i * (durationVariation * 2 / (arraySize - 1)) + durationAverage - durationVariation;
-            //Debug.Log(tempDurations[i].ToString());
+            Debug.Log(tempDurations[i].ToString());
         }
         //shuffle cue duration order
         RandomizeArray.ShuffleArray(tempDurations);
@@ -1499,38 +1691,36 @@ public class ExperimentManager : MonoBehaviour
 
 
         //create and position object
-        //GameObject optoGaitCube = GameObject.CreatePrimitive(PrimitiveType.Cube);
         optoGait.transform.position = new Vector3(centroid.x, 0.1f, centroid.z);    //move to ground
         optoGait.transform.localScale = new Vector3(width, 0.2f, length);     //height is not relevant
         optoGait.transform.eulerAngles = new Vector3(0f, angle, 0f);
-
-        //change color
-        //optoGaitCube.GetComponent<MeshRenderer>().material.color = Color.yellow;
-
-        //resize and position collider
-        //optoGaitCube.GetComponent<BoxCollider>().size = new Vector3(1, 10, 1);
-        //optoGaitCube.GetComponent<BoxCollider>().center = new Vector3(0, 4.5f, 0);
 
     }
 
 
     public void IncrementInsideGaitCounter()
     {
-        insideGaitCounter += 1;
+        controllerInsideGaitCounter += 1;
 
         //lsl marker
-        marker.Write("incremented insideGaitCounter to " + insideGaitCounter.ToString());
-        print("incremented insideGaitCounter to " + insideGaitCounter.ToString());
+        marker.Write("controller inside gait:" + controllerInsideGaitCounter.ToString());
+        print("controller inside gait: " + controllerInsideGaitCounter.ToString());
 
         //check if new gait pass:
-        if (insideGaitCounter == 2)
+        if (controllerInsideGaitCounter == 2)
         {
             //increment gait pass counter
             gaitPassCounter += 1;
-            
+
+            //reset trial in gait counter
+            currentTrialInGait = 0;
+
+            //reset gait trials reached
+            maxGaitTrialsReached = false;
+
             //lsl marker
-            marker.Write("incremented gaitPassCounter to " + gaitPassCounter.ToString());
-            print("incremented gaitPassCounter to " + gaitPassCounter.ToString());
+            marker.Write("new gait pass:" + gaitPassCounter.ToString());
+            print("new gait pass:" + gaitPassCounter.ToString());
 
             //change color of optogait object
             optoGait.GetComponent<MeshRenderer>().material.color = Color.green;
@@ -1541,11 +1731,11 @@ public class ExperimentManager : MonoBehaviour
 
     public void DecrementInsideGaitCounter()
     {
-        insideGaitCounter -= 1;
+        controllerInsideGaitCounter -= 1;
 
         //lsl marker
-        marker.Write("decremented insideGaitCounter to " + insideGaitCounter.ToString());
-        print("decremented insideGaitCounter to " + insideGaitCounter.ToString());
+        marker.Write("controller inside Gait:" + controllerInsideGaitCounter.ToString());
+        print("controller inside gait: " + controllerInsideGaitCounter.ToString());
 
         //change color of optogait object
         optoGait.GetComponent<MeshRenderer>().material.color = Color.yellow;
@@ -1553,11 +1743,12 @@ public class ExperimentManager : MonoBehaviour
     }
 
 
-    private void SetDesktopInfoTexts(string condition, string runNo, string trialNo, string gaitPassNo, string time)
+    private void SetDesktopInfoTexts(string condition, string runNo, string trialNo, string trialNoInGait, string gaitPassNo, string time)
     {
         textCondition.GetComponent<Text>().text = condition;
         textConditionRunNo.GetComponent<Text>().text = runNo;
         textTrialNo.GetComponent<Text>().text = trialNo;
+        textTrialInGaitNo.GetComponent<Text>().text = trialNoInGait;
         textGaitPassNo.GetComponent<Text>().text = gaitPassNo;
         textTime.GetComponent<Text>().text = time;
 
