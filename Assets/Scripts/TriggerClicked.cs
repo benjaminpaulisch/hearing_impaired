@@ -47,7 +47,7 @@ public class TriggerClicked : MonoBehaviour
         if (expManager.GetResponseActive())
         {
             //write lsl marker
-            expManager.marker.Write("response: " + side);
+            expManager.marker.Write("controller response: " + side);
             Debug.Log("Response given: " + side);
 
             expManager.SetTriggerPressed(side);
@@ -55,8 +55,8 @@ public class TriggerClicked : MonoBehaviour
         else
         {
             //write lsl marker
-            //expManager.marker.Write("triggerClicked: " + side);
-            //Debug.Log("Trigger clicked: " + side);
+            expManager.marker.Write("controller response (outside response time window): " + side);
+            Debug.Log("Controller trigger pressed: " + side);
         }
 
     }
