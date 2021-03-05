@@ -10,7 +10,8 @@ public class ExperimentManager : MonoBehaviour
     [Header("General Config")]
     public float isiDurationAvg = 1;                //1s ISI duration on average
     public float isiDurationVariation = 0.5f;       //0.5s variation (so the ISI duration range is betweeen 0.5s and 1.5s)
-    public float stimulusDuration = 0.01f;          //100ms stimulus duration
+    public float stimulusDuration = 0.1f;          //100ms stimulus duration
+    public int ledBrightness = 10;                  //should be a value 0-100 (0=off)
     public float responseTimeMax = 1.9f;            //1.5s max possible response time
 
     [Header("Experiment specific")]
@@ -1235,7 +1236,7 @@ public class ExperimentManager : MonoBehaviour
                     stimulusColor = "blue";     //rgb values instead?
                 }
 
-                TriggerAudioStimulus(stimulusSide, stimulusColor);
+                TriggerVisualStimulus(stimulusSide, stimulusColor);
 
             }
 
@@ -1523,7 +1524,9 @@ public class ExperimentManager : MonoBehaviour
     void TriggerVisualStimulus(string side, string color)
     {
         //triggers a visual stimulus by sending a command to the Raspberry PI
-        //ToDo
+        string[] sample = {"led;" + side + ";" + color + ";" + ledBrightness.ToString() + ";" + (stimulusDuration*1000).ToString()};    //convert s to ms
+        //ToDo: try catch block!
+        visualStimulusStreamOutlet.push_sample(sample);
 
         //send lsl marker
         tempMarkerText =
