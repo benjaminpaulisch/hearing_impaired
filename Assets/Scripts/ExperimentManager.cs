@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using Assets.LSL4Unity.Scripts; // reference the LSL4Unity namespace to get access to all classes
+using LSL;
 using System.Collections.Generic;
 
 public class ExperimentManager : MonoBehaviour
@@ -59,6 +60,7 @@ public class ExperimentManager : MonoBehaviour
     private Vector3 gaitCornerPositionTwo;
     private Vector3 gaitCornerPositionTree;
     private Vector3 gaitCornerPositionFour;
+    private Vector3[] corners = new Vector3[4];     //used to store the 4 corner positions of the OptoGait you can put in in the calibration menu
     private int controllerInsideGaitCounter = 0;              //used to store the amount of controllers inside OptoGait object collider
 
     private float currentTime = 0;                  //current time value during a trial
@@ -72,7 +74,12 @@ public class ExperimentManager : MonoBehaviour
 
     private string tempMarkerText;
 
-    private Vector3[] corners = new Vector3[4];     //used to store the 4 corner positions of the OptoGait you can put in in the calibration menu
+    //lsl streams for visual stimulus and answeres from raspi
+    private liblsl.StreamInfo visualStimulusStreamInfo;
+    private liblsl.StreamOutlet visualStimulusStreamOutlet;
+    private liblsl.StreamInlet rasPiStreamInlet;
+    private string rasPiConnected = "RasPi connected";
+    private string rasPiNotConnected = "RasPi not connected";
 
 
     // Experiment specific
@@ -129,10 +136,10 @@ public class ExperimentManager : MonoBehaviour
 
 
     // Gameobject handles
-    private GameObject mainMenuCanvas, configMenuCanvas, calibrationMenuCanvas, desktopInfoCanvas,
-        buttonTraining, buttonBaselineWalking, buttonBaselineSitting, buttonSittingVisual, buttonSittingAudio, buttonWalkingST, buttonWalkingVisual, buttonWalkingAudio,
+    private GameObject mainMenuCanvas, configMenuCanvas, calibrationMenuCanvas, desktopInfoCanvas, expMenuCanvas,
+        buttonExpMenu, buttonConnectRasPi, //buttonTraining, buttonBaselineWalking, buttonBaselineSitting, buttonSittingVisual, buttonSittingAudio, buttonWalkingST, buttonWalkingVisual, buttonWalkingAudio,
         inputParticipantID, inputParticipantAge, inputParticipantGroup, inputParticipantGender,
-        textCondition, textConditionRunNo, textTrialNo, textTrialInGaitNo,  textGaitPassNo, textTime,
+        configurationIncompleteText, calibrationIncompleteText, rasPiNotConnectedText, textCondition, textConditionRunNo, textTrialNo, textTrialInGaitNo,  textGaitPassNo, textTime,
         optoGait
         ;
 
@@ -150,20 +157,28 @@ public class ExperimentManager : MonoBehaviour
         // Finding the game objects:
         marker = FindObjectOfType<LSLMarkerStream>();
         mainMenuCanvas = GameObject.Find("MainMenuCanvas");
+        configurationIncompleteText = GameObject.Find("ConfigurationIncompleteText");
+        calibrationIncompleteText = GameObject.Find("CalibrationIncompleteText");
+        buttonConnectRasPi = GameObject.Find("ButtonConnectRasPi");
+        rasPiNotConnectedText = GameObject.Find("RasPiNotConnectedText");
+        buttonExpMenu = GameObject.Find("ButtonExpMenu");
+        expMenuCanvas = GameObject.Find("ExpMenuCanvas");
+        /*
         buttonTraining = GameObject.Find("ButtonTraining");
-        buttonBaselineWalking = GameObject.Find("Table");
-        buttonBaselineSitting = GameObject.Find("ButtonBaselineWalking");
+        buttonBaselineWalking = GameObject.Find("ButtonBaselineWalking");
+        buttonBaselineSitting = GameObject.Find("ButtonBaselineSitting");
         buttonSittingVisual = GameObject.Find("ButtonSittingVisual");
         buttonSittingAudio = GameObject.Find("ButtonSittingAudio");
         buttonWalkingST = GameObject.Find("ButtonWalkingST");
         buttonWalkingVisual = GameObject.Find("ButtonWalkingVisual");
         buttonWalkingAudio = GameObject.Find("ButtonWalkingAudio");
+        */
         configMenuCanvas = GameObject.Find("ConfigMenuCanvas");
-        calibrationMenuCanvas = GameObject.Find("CalibrationMenuCanvas");
         inputParticipantID = GameObject.Find("InputParticipantID");
         inputParticipantAge = GameObject.Find("InputParticipantAge");
         inputParticipantGroup = GameObject.Find("DropdownParticipantGroup");
         inputParticipantGender = GameObject.Find("DropdownParticipantGender");
+        calibrationMenuCanvas = GameObject.Find("CalibrationMenuCanvas");
         desktopInfoCanvas = GameObject.Find("DesktopInfoCanvas");
         textCondition = GameObject.Find("TextCondition");
         textConditionRunNo = GameObject.Find("TextConditionRunNo");
@@ -175,9 +190,13 @@ public class ExperimentManager : MonoBehaviour
         controllerRight = GameObject.Find("Controller (right)");
         optoGait = GameObject.Find("OptoGait");
 
+
+        //start lsl stream for sending commands to RasPi (for triggering visual stimuli)
+        visualStimulusStreamInfo = new liblsl.StreamInfo("HearingImpaired_CommandsToRasPi", "markers", 1, 0, liblsl.channel_format_t.cf_string, "unity3dId123354");
+        visualStimulusStreamOutlet = new liblsl.StreamOutlet(visualStimulusStreamInfo);
+
         // start the Main Menu:
         StartMainMenu();
-
 
     }//start()
 
@@ -220,7 +239,12 @@ public class ExperimentManager : MonoBehaviour
                         break;
                     }
 
-                case 3: //training
+                case 3: //exp menu
+                    {
+                        break;
+                    }
+
+                case 4: //training
                     {
                         if (Input.GetKeyDown("escape"))
                         {
@@ -229,8 +253,8 @@ public class ExperimentManager : MonoBehaviour
 
                             trainingStarted = false;
 
-                            //go to main menu
-                            StartMainMenu();
+                            //go to exp menu
+                            StartExpMenu();
                         }
                         else if (!trainingInitRun)
                         {
@@ -244,7 +268,7 @@ public class ExperimentManager : MonoBehaviour
                         break;
                     }
 
-                case 4: //experiment
+                case 5: //experiment
                     {
                         //check for abort by pressing the escape key
                         if (Input.GetKeyDown("escape"))
@@ -254,8 +278,8 @@ public class ExperimentManager : MonoBehaviour
 
                             experimentStarted = false;
 
-                            //go to main menu
-                            StartMainMenu();
+                            //go to exp menu
+                            StartExpMenu();
                         }
                         //Initialize experiment
                         else if (!expInitRun)
@@ -287,7 +311,7 @@ public class ExperimentManager : MonoBehaviour
                         break;
                     }
 
-                case 5: //baseline
+                case 6: //baseline
                     {
                         //check for abort by pressing the escape key
                         if (Input.GetKeyDown("escape"))
@@ -297,8 +321,8 @@ public class ExperimentManager : MonoBehaviour
                             
                             baselineStarted = false;
 
-                            //go to main menu
-                            StartMainMenu();
+                            //go to exp menu
+                            StartExpMenu();
                         }
                         else if (!baselineInitRun)
                         {
@@ -320,8 +344,8 @@ public class ExperimentManager : MonoBehaviour
                                     marker.Write("baseline:end");
                                     print("baseline:end");
 
-                                    //Go back to main menu
-                                    StartMainMenu();
+                                    //go to exp menu
+                                    StartExpMenu();
                                 }
                                 else
                                 {
@@ -364,18 +388,35 @@ public class ExperimentManager : MonoBehaviour
         Debug.Log("Starting Main Menu");
         programStatus = 0;
 
-        expInitRun = false;
-        baselineInitRun = false;
-        trainingInitRun = false;
-
         //activate/deactivate GameObjects
         mainMenuCanvas.SetActive(true);
+        expMenuCanvas.SetActive(false);
         configMenuCanvas.SetActive(false);
         calibrationMenuCanvas.SetActive(false);
         desktopInfoCanvas.SetActive(false);
 
 
     }//StartMainMenu()
+
+
+    public void StartExpMenu()
+    {
+        //This method is used for starting the experiment menu.
+        Debug.Log("Starting Experiment Menu");
+        programStatus = 3;
+
+        expInitRun = false;
+        baselineInitRun = false;
+        trainingInitRun = false;
+
+        //activate/deactivate GameObjects
+        mainMenuCanvas.SetActive(false);
+        expMenuCanvas.SetActive(true);
+        configMenuCanvas.SetActive(false);
+        calibrationMenuCanvas.SetActive(false);
+        desktopInfoCanvas.SetActive(false);
+
+    }
 
 
     public void StartConfiguration()
@@ -386,6 +427,7 @@ public class ExperimentManager : MonoBehaviour
 
         //activate/deactivate GameObjects
         mainMenuCanvas.SetActive(false);
+        expMenuCanvas.SetActive(false);
         configMenuCanvas.SetActive(true);
         calibrationMenuCanvas.SetActive(false);
         desktopInfoCanvas.SetActive(false);
@@ -471,6 +513,7 @@ public class ExperimentManager : MonoBehaviour
 
         //activate/deactivate GameObjects
         mainMenuCanvas.SetActive(false);
+        expMenuCanvas.SetActive(false);
         configMenuCanvas.SetActive(false);
         calibrationMenuCanvas.SetActive(true);
         desktopInfoCanvas.SetActive(false);
@@ -484,10 +527,11 @@ public class ExperimentManager : MonoBehaviour
         //This method is used for the "Start Training" button on the main menu. When the button is pressed this method is executed.
         marker.Write("Main menu: Start Training button pressed");
         Debug.Log("Starting Training");
-        programStatus = 3;
+        programStatus = 4;
 
         //activate/deactivate GameObjects
         mainMenuCanvas.SetActive(false);
+        expMenuCanvas.SetActive(false);
         configMenuCanvas.SetActive(false);
         calibrationMenuCanvas.SetActive(false);
         desktopInfoCanvas.SetActive(true);
@@ -501,12 +545,13 @@ public class ExperimentManager : MonoBehaviour
         //This method is used for all "Start Baseline" buttons in the main menu. If one of these buttons is pressed this method is executed.
         marker.Write("Main menu: Start " + conditions[conditionNo] + " button pressed");
         Debug.Log("Starting " + conditions[conditionNo]);
-        programStatus = 5;
+        programStatus = 6;
 
         currentConditionNo = conditionNo;
 
         //activate/deactivate GameObjects
         mainMenuCanvas.SetActive(false);
+        expMenuCanvas.SetActive(false);
         configMenuCanvas.SetActive(false);
         calibrationMenuCanvas.SetActive(false);
         desktopInfoCanvas.SetActive(true);
@@ -519,12 +564,13 @@ public class ExperimentManager : MonoBehaviour
         //This method is used for all "Start Block" buttons in the main menu. If one of these buttons is pressed this method is executed.
         marker.Write("Main menu: Start Experiment button pressed");
         Debug.Log("Starting Experiment");
-        programStatus = 4;
+        programStatus = 5;
 
         currentConditionNo = conditionNo;
 
         //activate/deactivate GameObjects
         mainMenuCanvas.SetActive(false);
+        expMenuCanvas.SetActive(false);
         configMenuCanvas.SetActive(false);
         calibrationMenuCanvas.SetActive(false);
         desktopInfoCanvas.SetActive(true);
@@ -1101,8 +1147,8 @@ public class ExperimentManager : MonoBehaviour
 
             experimentStarted = false;
 
-            //go to main menu
-            StartMainMenu();
+            //go to exp menu
+            StartExpMenu();
         }
 
     }//RunExperiment()
@@ -1771,6 +1817,94 @@ public class ExperimentManager : MonoBehaviour
     static string BoolToString(bool b)
     {
         return b ? "true" : "false";
+    }
+
+
+    private bool ResolveRasPiStream()
+    {
+        print("resolving rapsi answers stream...");
+        liblsl.StreamInfo[] resolvedStreams = liblsl.resolve_stream("name", "HearingImpaired_RasPiAnswers", 1, 10);
+
+        if (resolvedStreams.Length > 0)
+        {
+            rasPiStreamInlet = new liblsl.StreamInlet(resolvedStreams[0]);
+            print("stream found");
+            return true;
+        }
+        else
+        {
+            print("Stream not found");
+            return false;
+        }
+    }
+
+
+    public void ConnectRasPi()
+    {
+        //disable button
+        buttonConnectRasPi.GetComponent<Button>().interactable = false;
+
+        print("Connection test with RasPi:");
+        print("Trying to resolve RasPi stream...");
+
+        //try to resolve the RasPi stream
+        if (ResolveRasPiStream())
+        {
+            print("RasPi stream found.");
+
+            //if RasPi stream found -> check if RasPi answers to connection check
+            print("Sending test command to RasPi...");
+            string[] sample = {"test connection"};
+            visualStimulusStreamOutlet.push_sample(sample);
+
+            print("Waiting for answer from RasPi...");
+            string[] sampleReceived = new string[1];
+            rasPiStreamInlet.pull_sample(sampleReceived, 5);
+
+            if (sampleReceived.Length > 0)
+            {
+                for(int i=0; i<sampleReceived.Length; i++)
+                {
+                    print("sampleReceived[" + i.ToString() + "]: " + sampleReceived[i]);
+                }
+                
+
+                if (sampleReceived[0].Contains("connection answer"))
+                {
+                    print("RasPi answered. Connection successful.");
+
+                    //set text and set color to green
+                    rasPiNotConnectedText.GetComponent<Text>().text = rasPiConnected;
+                    rasPiNotConnectedText.GetComponent<Text>().color = Color.green;
+                }
+                else
+                {
+                    print("Wrong answer from RasPi. Connection failed.");
+                    //set text and set color to red
+                    rasPiNotConnectedText.GetComponent<Text>().text = rasPiNotConnected;
+                    rasPiNotConnectedText.GetComponent<Text>().color = Color.red;
+                }
+            }
+            else
+            {
+                print("No answer from RasPi. Connection failed.");
+                //set text and set color to red
+                rasPiNotConnectedText.GetComponent<Text>().text = rasPiNotConnected;
+                rasPiNotConnectedText.GetComponent<Text>().color = Color.red;
+            }
+            
+        }
+        else
+        {
+            print("RasPi stream not found. Connection failed.");
+            //set text and set color to red
+            rasPiNotConnectedText.GetComponent<Text>().text = rasPiNotConnected;
+            rasPiNotConnectedText.GetComponent<Text>().color = Color.red;
+        }
+
+        //enable button
+        buttonConnectRasPi.GetComponent<Button>().interactable = true;
+
     }
 
 }//class
