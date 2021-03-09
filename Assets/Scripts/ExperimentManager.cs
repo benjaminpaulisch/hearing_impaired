@@ -10,13 +10,13 @@ public class ExperimentManager : MonoBehaviour
     [Header("General Config")]
     public float isiDurationAvg = 1;                //1s ISI duration on average
     public float isiDurationVariation = 0.5f;       //0.5s variation (so the ISI duration range is betweeen 0.5s and 1.5s)
-    public float stimulusDuration = 0.1f;          //100ms stimulus duration
+    public float stimulusDuration = 0.1f;           //100ms stimulus duration
     public int ledBrightness = 10;                  //should be a value 0-100 (0=off)
     public float responseTimeMax = 1.9f;            //1.5s max possible response time
 
     [Header("Experiment specific")]
     public int gaitPassesPerBlock = 35;             
-    public int trialsPerBlock = 100;
+    public int trialsPerBlock = 100;                //this is now only used for ST_sitting blocks, for DT_walking blocks the amount of trials is calculated with gaitPassesPerBlock * trialsPerGaitPass to prevent errors
     public int trialsPerGaitPass = 5;               //the maximum number of trials possible during each gait pass
     //public int trialsWalkingChunkMultiplier = 10;   //will be multiplied with the amount of different stimuli to get a chunk size for the walking conditions
 
@@ -774,22 +774,51 @@ public class ExperimentManager : MonoBehaviour
 
 
         //create trial sequence for the block
-        if (conditions[currentConditionNo].Contains("visual"))
+        if (conditions[currentConditionNo].Contains("DT"))
         {
-            
-            stimuliBlockSequence = CreateTrialSequenceArray(trialsPerBlock, stimuliBaseSequence, visualStimuli);
+            //DT_walking conditions
+
+            if (conditions[currentConditionNo].Contains("visual"))
+            {
+                //DT_visual
+
+                //create trial sequence for the block
+                stimuliBlockSequence = CreateTrialSequenceArray(gaitPassesPerBlock * trialsPerGaitPass, stimuliBaseSequence, visualStimuli);
+            }
+            else
+            {
+                //DT_audio
+
+                //create trial sequence for the block
+                stimuliBlockSequence = CreateTrialSequenceArray(gaitPassesPerBlock * trialsPerGaitPass, stimuliBaseSequence, audioStimuli);
+            }
+
+            //Create isi durations for the block
+            isiDurations = CreateDurationsArray(gaitPassesPerBlock * trialsPerGaitPass, isiDurationAvg, isiDurationVariation);
+
         }
         else
         {
-            //create trial sequence for the block
-            stimuliBlockSequence = CreateTrialSequenceArray(trialsPerBlock, stimuliBaseSequence, audioStimuli);
+            //ST_sitting conditions
+            if (conditions[currentConditionNo].Contains("visual"))
+            {
+                //ST_visual
+
+                //create trial sequence for the block
+                stimuliBlockSequence = CreateTrialSequenceArray(trialsPerBlock, stimuliBaseSequence, visualStimuli);
+            }
+            else
+            {
+                //ST_audio
+
+                //create trial sequence for the block
+                stimuliBlockSequence = CreateTrialSequenceArray(trialsPerBlock, stimuliBaseSequence, audioStimuli);
+            }
+
+            //Create isi durations for the block
+            isiDurations = CreateDurationsArray(trialsPerBlock, isiDurationAvg, isiDurationVariation);
+
         }
-
-
-        //Create isi durations for the block
-        isiDurations = CreateDurationsArray(trialsPerBlock, isiDurationAvg, isiDurationVariation);
-
-
 
 
         //write experiment start marker
@@ -949,7 +978,7 @@ public class ExperimentManager : MonoBehaviour
         //start first trial
         StartTrial();
 
-    }
+    }//InitTraining()
 
 
     void InitWalkingST()
@@ -1040,8 +1069,13 @@ public class ExperimentManager : MonoBehaviour
                     //abort current trial
                     experimentStarted = false;
 
-                    //only abort if max gait trials were not reached
-                    if (!maxGaitTrialsReached)
+                    //check if current gait was the last
+                    if (gaitPassCounter == gaitPassesPerBlock)
+                    {
+                        //set flag for experiment end
+                        experimentEnd = true;
+                    }
+                    else if (!maxGaitTrialsReached)  //only abort if max gait trials were not reached
                     {
                         //lsl marker
                         marker.Write("trialAbort:" + trialCounter.ToString());
@@ -1050,7 +1084,6 @@ public class ExperimentManager : MonoBehaviour
                         //go to next trial
                         NextTrial();
                     }
-                    
 
                 }
             }
@@ -1082,7 +1115,7 @@ public class ExperimentManager : MonoBehaviour
             else if (currentConditionNo == 2 || currentConditionNo == 4)
             {
                 //dual task walking conditions
-                if (gaitPassCounter < gaitPassesPerBlock)
+                if (gaitPassCounter <= gaitPassesPerBlock)
                 {
                     RunTrial();
                 }
@@ -1362,29 +1395,29 @@ public class ExperimentManager : MonoBehaviour
         if (currentConditionNo == 2 || currentConditionNo == 4)
         {
             //dual task walking conditions
-            if (gaitPassCounter > gaitPassesPerBlock)
+
+            //check if max trials in gait is not reached
+            if (currentTrialInGait < trialsPerGaitPass)
             {
-                //set flag for experiment end and don't start another trial
-                experimentEnd = true;
+                //start next trial if exp is running (if NOT we could be ouside gait and don't want to start a new trial!)
+                if (experimentStarted)
+                {
+                    StartTrial();
+                }
             }
             else
             {
-                //check if max trials in gait is not reached
-                if (currentTrialInGait < trialsPerGaitPass)
-                {
-                    //start next trial if exp is running (if NOT we could be ouside gait and don't want to start a new trial!)
-                    if (experimentStarted)
-                    {
-                        StartTrial();
-                    }
-                }
-                else
-                {
-                    maxGaitTrialsReached = true;
+                maxGaitTrialsReached = true;
 
-                    //write lsl marker
-                    marker.Write("Max number of trials in gait reached. Waiting for next gait.");
-                    print("Max number of trials in gait reached. Waiting for next gait.");
+                //write lsl marker
+                marker.Write("Max number of trials in gait reached. Waiting for next gait.");
+                print("Max number of trials in gait reached. Waiting for next gait.");
+
+                //check if max gaits in block is also reached
+                if (gaitPassCounter == gaitPassesPerBlock)
+                {
+                    //set flag for experiment end and don't start another trial
+                    experimentEnd = true;
                 }
             }
 
