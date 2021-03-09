@@ -193,7 +193,7 @@ public class ExperimentManager : MonoBehaviour
 
 
         //start lsl stream for sending commands to RasPi (for triggering visual stimuli)
-        visualStimulusStreamInfo = new liblsl.StreamInfo("HearingImpaired_CommandsToRasPi", "markers", 1, 0, liblsl.channel_format_t.cf_string, "unity3dId123354");
+        visualStimulusStreamInfo = new liblsl.StreamInfo("HearingImpaired_Unity3D_CommandsToRasPi", "markers", 1, 0, liblsl.channel_format_t.cf_string, "unity3dId123354");
         visualStimulusStreamOutlet = new liblsl.StreamOutlet(visualStimulusStreamInfo);
 
         // start the Main Menu:
@@ -274,8 +274,8 @@ public class ExperimentManager : MonoBehaviour
                         //check for abort by pressing the escape key
                         if (Input.GetKeyDown("escape"))
                         {
-                            marker.Write("experiment:abort");
-                            Debug.Log("experiment:abort");
+                            marker.Write("experimentBlock:abort");
+                            Debug.Log("experimentBlock:abort");
 
                             experimentStarted = false;
 
@@ -563,7 +563,7 @@ public class ExperimentManager : MonoBehaviour
     public void StartExperiment(int conditionNo)
     {
         //This method is used for all "Start Block" buttons in the main menu. If one of these buttons is pressed this method is executed.
-        marker.Write("Main menu: Start Experiment button pressed");
+        marker.Write("Main menu: Start Block: " + conditions[conditionNo] + " button pressed");
         Debug.Log("Starting Experiment");
         programStatus = 5;
 
@@ -966,10 +966,10 @@ public class ExperimentManager : MonoBehaviour
 
         //write experiment start marker
         tempMarkerText =
-            "experiment:start;" +
+            "experimentBlock:start;" +
             "condition:" + conditions[currentConditionNo] + ";" +
             "runNo:" + stWalkingRunNo.ToString() + ";" +
-            "gaitPasses:" + gaitPassesPerBlock.ToString();
+            "gaitsTotal:" + gaitPassesPerBlock.ToString();
            
         marker.Write(tempMarkerText);
         Debug.Log(tempMarkerText);
@@ -1139,8 +1139,8 @@ public class ExperimentManager : MonoBehaviour
             }
             else
             {
-                marker.Write("experiment:end");
-                Debug.Log("experiment:end");
+                marker.Write("experimentBlock:end");
+                Debug.Log("experimentBlock:end");
             }
 
             //activate experiment end text
@@ -1826,7 +1826,7 @@ public class ExperimentManager : MonoBehaviour
     private bool ResolveRasPiStream()
     {
         print("resolving rapsi answers stream...");
-        liblsl.StreamInfo[] resolvedStreams = liblsl.resolve_stream("name", "HearingImpaired_RasPiAnswers", 1, 10);
+        liblsl.StreamInfo[] resolvedStreams = liblsl.resolve_stream("name", "HearingImpaired_RasPi_Answers", 1, 10);
 
         if (resolvedStreams.Length > 0)
         {

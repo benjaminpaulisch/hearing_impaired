@@ -9,7 +9,7 @@ namespace Assets.LSL4Unity.Scripts
     {
         private const string unique_source_id = "D3F83BB699EB49AB94A9FA44B88882AB";
 
-        public string lslStreamName = "Unity_APT-Dynamics_Events";
+        public string lslStreamName = "HearingImpaired_Unity3D_Events";
         public string lslStreamType = "LSL_Marker_Strings";
 
         private liblsl.StreamInfo lslStreamInfo;
