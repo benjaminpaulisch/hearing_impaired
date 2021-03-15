@@ -1785,8 +1785,8 @@ public class ExperimentManager : MonoBehaviour
         controllerInsideGaitCounter += 1;
 
         //lsl marker
-        marker.Write("controller inside gait:" + controllerInsideGaitCounter.ToString());
-        print("controller inside gait: " + controllerInsideGaitCounter.ToString());
+        marker.Write("foot inside gait:" + controllerInsideGaitCounter.ToString());
+        print("foot inside gait: " + controllerInsideGaitCounter.ToString());
 
         //check if new gait pass:
         if (controllerInsideGaitCounter == 2)

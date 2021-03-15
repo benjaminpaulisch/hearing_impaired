@@ -25,7 +25,11 @@ public class TriggerInsideDetection : MonoBehaviour
         expmanager.marker.Write(other.name + " entered OptoGait");
         print(other.name + " entered OptoGait");
 
-        expmanager.IncrementInsideGaitCounter();
+        //only increment if feet collided
+        if (other.name.Contains("Foot"))
+        {
+            expmanager.IncrementInsideGaitCounter();
+        }
 
     }
 
@@ -35,7 +39,11 @@ public class TriggerInsideDetection : MonoBehaviour
         expmanager.marker.Write(other.name + " exited OptoGait");
         print(other.name + " exited OptoGait");
 
-        expmanager.DecrementInsideGaitCounter();
+        //only dencrement if feet collided
+        if (other.name.Contains("Foot"))
+        {
+            expmanager.DecrementInsideGaitCounter();
+        }
 
     }
 

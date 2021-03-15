@@ -237,7 +237,7 @@ namespace Valve.VR.InteractionSystem
 
 
 		//-------------------------------------------------
-		// Guess for the world-space direction of the player's hips/torso. This is effectively just the gaze direction projected onto the floor plane.
+		// Guess for the world-space direction of the player's hips/footR. This is effectively just the gaze direction projected onto the floor plane.
 		//-------------------------------------------------
 		public Vector3 bodyDirectionGuess
 		{
