@@ -1895,14 +1895,14 @@ public class ExperimentManager : MonoBehaviour
 
             print("Waiting for answer from RasPi...");
             string[] sampleReceived = new string[1];
-            rasPiStreamInlet.pull_sample(sampleReceived, 5);
+            rasPiStreamInlet.pull_sample(sampleReceived, 10);
 
-            if (sampleReceived.Length > 0)
+            if (sampleReceived[0].Length > 0)
             {
-                for(int i=0; i<sampleReceived.Length; i++)
-                {
-                    print("sampleReceived[" + i.ToString() + "]: " + sampleReceived[i]);
-                }
+                //for (int i = 0; i < sampleReceived[0].Length; i++)
+                //{
+                    print("sampleReceived[0]: " + sampleReceived[0]);
+                //}
                 
 
                 if (sampleReceived[0].Contains("connection answer"))
