@@ -4,10 +4,10 @@ using LSL;
 using Assets.LSL4Unity.Scripts;
 using Assets.LSL4Unity.Scripts.Common;
 
-public class lsl_rb_stream_controllerRight : MonoBehaviour {
+public class lsl_rb_stream_handLeft : MonoBehaviour {
 
 	// 6DOF streaming
-    GameObject controllerRight;
+    GameObject handLeft;
 
 	private liblsl.StreamOutlet outlet;
 	private liblsl.StreamInfo streamInfo;
@@ -22,7 +22,7 @@ public class lsl_rb_stream_controllerRight : MonoBehaviour {
 
 	public double dataRate=90;
 
-	public const string uid = "53365f79e78d46a2b8a06412e6d954e7";
+	public const string uid = "53365f79e78d46a2b8a06412e6d954e5";
 
 	public double GetDataRate()
 	{
@@ -44,7 +44,7 @@ public class lsl_rb_stream_controllerRight : MonoBehaviour {
 	}
 
 	// set LSL parameters
-	public const string StreamName = "Rigid_controllerRight";
+	public const string StreamName = "Rigid_handLeft";
 
 	public string StreamType = "rigidBody";
 	
@@ -60,7 +60,7 @@ public class lsl_rb_stream_controllerRight : MonoBehaviour {
 	void Start () 
 	{
 	
-		controllerRight = GameObject.Find("Controller (right)");
+		handLeft = GameObject.Find("LeftHand");
 
 		// initialize the array once
 		currentSample = new float[ChannelCount];
@@ -138,13 +138,13 @@ public class lsl_rb_stream_controllerRight : MonoBehaviour {
 					Debug.Log("Rotation"+firstDevice.transform.rot);*/
 			// reuse the array for each sample to reduce allocation costs
 			// currently only for right-hand device
-			currentSample[0] = controllerRight.transform.position.x;
-			currentSample[1] = controllerRight.transform.position.y;
-			currentSample[2] = controllerRight.transform.position.z;
-			currentSample[3] = controllerRight.transform.rotation.x;
-			currentSample[4] = controllerRight.transform.rotation.y;
-			currentSample[5] = controllerRight.transform.rotation.z;
-			currentSample[6] = controllerRight.transform.rotation.w;
+			currentSample[0] = handLeft.transform.position.x;
+			currentSample[1] = handLeft.transform.position.y;
+			currentSample[2] = handLeft.transform.position.z;
+			currentSample[3] = handLeft.transform.rotation.x;
+			currentSample[4] = handLeft.transform.rotation.y;
+			currentSample[5] = handLeft.transform.rotation.z;
+			currentSample[6] = handLeft.transform.rotation.w;
 
 			outlet.push_sample(currentSample, liblsl.local_clock());
 

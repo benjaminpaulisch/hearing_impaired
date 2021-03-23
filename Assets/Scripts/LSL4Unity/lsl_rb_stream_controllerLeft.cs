@@ -7,7 +7,7 @@ using Assets.LSL4Unity.Scripts.Common;
 public class lsl_rb_stream_controllerLeft : MonoBehaviour {
 
 	// 6DOF streaming
-    GameObject handL;
+    GameObject controllerLeft;
 
 	private liblsl.StreamOutlet outlet;
 	private liblsl.StreamInfo streamInfo;
@@ -44,7 +44,7 @@ public class lsl_rb_stream_controllerLeft : MonoBehaviour {
 	}
 
 	// set LSL parameters
-	public const string StreamName = "Rigid_handL";
+	public const string StreamName = "Rigid_controllerLeft";
 
 	public string StreamType = "rigidBody";
 	
@@ -60,7 +60,7 @@ public class lsl_rb_stream_controllerLeft : MonoBehaviour {
 	void Start () 
 	{
 	
-		handL = GameObject.Find("Controller (left)");
+		controllerLeft = GameObject.Find("Controller (left)");
 
 		// initialize the array once
 		currentSample = new float[ChannelCount];
@@ -138,13 +138,13 @@ public class lsl_rb_stream_controllerLeft : MonoBehaviour {
 					Debug.Log("Rotation"+firstDevice.transform.rot);*/
 			// reuse the array for each sample to reduce allocation costs
 			// currently only for right-hand device
-			currentSample[0] = handL.transform.position.x;
-			currentSample[1] = handL.transform.position.y;
-			currentSample[2] = handL.transform.position.z;
-			currentSample[3] = handL.transform.rotation.x;
-			currentSample[4] = handL.transform.rotation.y;
-			currentSample[5] = handL.transform.rotation.z;
-			currentSample[6] = handL.transform.rotation.w;
+			currentSample[0] = controllerLeft.transform.position.x;
+			currentSample[1] = controllerLeft.transform.position.y;
+			currentSample[2] = controllerLeft.transform.position.z;
+			currentSample[3] = controllerLeft.transform.rotation.x;
+			currentSample[4] = controllerLeft.transform.rotation.y;
+			currentSample[5] = controllerLeft.transform.rotation.z;
+			currentSample[6] = controllerLeft.transform.rotation.w;
 
 			outlet.push_sample(currentSample, liblsl.local_clock());
 
