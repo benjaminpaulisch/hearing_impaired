@@ -13,6 +13,7 @@ public class ExperimentManager : MonoBehaviour
     public float stimulusDuration = 0.1f;           //100ms stimulus duration
     public int ledBrightness = 10;                  //should be a value 0-100 (0=off)
     public float responseTimeMax = 1.9f;            //1.5s max possible response time
+    public bool debugMode = false;
 
     [Header("Experiment specific")]
     public int gaitPassesPerBlock = 35;             
@@ -113,8 +114,14 @@ public class ExperimentManager : MonoBehaviour
     private bool idSet = false;
     private bool ageSet = false;
     private bool groupSet = false;
-    private bool genderSet = false;
+    private bool sexSet = false;
+    private bool configComplete = false;
+    private bool cornerOneSet = false;
+    private bool cornerTwoSet = false;
+    private bool cornerThreeSet = false;
+    private bool cornerFourSet = false;
     private bool gaitPositionsSet = false;
+    
 
     // Experiment logic handler
     private bool experimentStarted = false;
@@ -140,7 +147,7 @@ public class ExperimentManager : MonoBehaviour
 
     // Gameobject handles
     private GameObject mainMenuCanvas, configMenuCanvas, calibrationMenuCanvas, desktopInfoCanvas, expMenuCanvas,
-        buttonExpMenu, buttonConnectRasPi, //buttonTraining, buttonBaselineWalking, buttonBaselineSitting, buttonSittingVisual, buttonSittingAudio, buttonWalkingST, buttonWalkingVisual, buttonWalkingAudio,
+        buttonExpMenu, buttonConnectRasPi, buttonCreateOptoGaitCube, //buttonTraining, buttonBaselineWalking, buttonBaselineSitting, buttonSittingVisual, buttonSittingAudio, buttonWalkingST, buttonWalkingVisual, buttonWalkingAudio,
         inputParticipantID, inputParticipantAge, inputParticipantGroup, inputParticipantSex,
         configurationIncompleteText, calibrationIncompleteText, rasPiNotConnectedText, textCondition, textConditionRunNo, textTrialNo, textTrialInGaitNo,  textGaitPassNo, textTime,
         optoGait
@@ -162,6 +169,7 @@ public class ExperimentManager : MonoBehaviour
         mainMenuCanvas = GameObject.Find("MainMenuCanvas");
         configurationIncompleteText = GameObject.Find("ConfigurationIncompleteText");
         calibrationIncompleteText = GameObject.Find("CalibrationIncompleteText");
+        buttonCreateOptoGaitCube = GameObject.Find("ButtonCreateOptoGaitCube");
         buttonConnectRasPi = GameObject.Find("ButtonConnectRasPi");
         rasPiNotConnectedText = GameObject.Find("RasPiNotConnectedText");
         buttonExpMenu = GameObject.Find("ButtonExpMenu");
@@ -193,6 +201,14 @@ public class ExperimentManager : MonoBehaviour
         controllerRight = GameObject.Find("Controller (right)");
         optoGait = GameObject.Find("OptoGait");
 
+        if (!debugMode)
+        {
+            buttonExpMenu.GetComponent<Button>().interactable = false;
+        }
+        else
+        {
+            buttonExpMenu.GetComponent<Button>().interactable = true;
+        }
 
         //start lsl stream for sending commands to RasPi (for triggering visual stimuli)
         visualStimulusStreamInfo = new liblsl.StreamInfo("HearingImpaired_Unity3D_CommandsToRasPi", "markers", 1, 0, liblsl.channel_format_t.cf_string, "unity3dId123354");
@@ -400,6 +416,42 @@ public class ExperimentManager : MonoBehaviour
         desktopInfoCanvas.SetActive(false);
 
 
+        //check if config, calibration and raspi connection have been done
+        if (debugMode)
+        {
+            buttonExpMenu.GetComponent<Button>().interactable = true;
+        }
+        else
+        {
+            if (configComplete && gaitPositionsSet)
+            {
+                buttonExpMenu.GetComponent<Button>().interactable = true;
+            }
+            else
+            {
+                buttonExpMenu.GetComponent<Button>().interactable = false;
+            }
+        }
+
+        if (configComplete)
+        {
+            configurationIncompleteText.SetActive(false);
+        }
+        else
+        {
+            configurationIncompleteText.SetActive(true);
+        }
+
+        if (gaitPositionsSet)
+        {
+            calibrationIncompleteText.SetActive(false);
+        }
+        else
+        {
+            calibrationIncompleteText.SetActive(true);
+        }
+
+
     }//StartMainMenu()
 
 
@@ -475,7 +527,7 @@ public class ExperimentManager : MonoBehaviour
         }
         else
             ageSet = false;
-        /*
+        
         //participantGroup
         if (!inputParticipantGroup.GetComponent<Dropdown>().options[inputParticipantGroup.GetComponent<Dropdown>().value].text.Equals("?"))
         {
@@ -483,18 +535,16 @@ public class ExperimentManager : MonoBehaviour
             participantGroup = inputParticipantGroup.GetComponent<Dropdown>().options[inputParticipantGroup.GetComponent<Dropdown>().value].text;
         }
         else
-            genderSet = false;
-        */
+            groupSet = false;
 
         //participantSex
         if (!inputParticipantSex.GetComponent<Dropdown>().options[inputParticipantSex.GetComponent<Dropdown>().value].text.Equals("?"))
         {
-            genderSet = true;
+            sexSet = true;
             participantSex = inputParticipantSex.GetComponent<Dropdown>().options[inputParticipantSex.GetComponent<Dropdown>().value].text;
         }
         else
-            genderSet = false;
-        
+            sexSet = false;
         
         /*
         Debug.Log("participantID: " + participantID + " InputField.text: " + inputParticipantID.GetComponent<InputField>().text);
@@ -502,6 +552,17 @@ public class ExperimentManager : MonoBehaviour
         Debug.Log("participantGroup: " + participantGroup + " InputField.text: " + inputParticipantGroup.GetComponent<Dropdown>().options[inputParticipantGroup.GetComponent<Dropdown>().value].text);
         Debug.Log("participantSex: " + participantSex + " InputField.text: " + inputParticipantSex.GetComponent<Dropdown>().options[inputParticipantSex.GetComponent<Dropdown>().value].text);
         */
+
+
+        //check if config is complete
+        if (idSet && ageSet && groupSet && sexSet)
+        {
+            configComplete = true;
+        }
+        else
+        {
+            configComplete = false;
+        }
 
         //Go back to main menu
         StartMainMenu();
@@ -522,8 +583,23 @@ public class ExperimentManager : MonoBehaviour
         calibrationMenuCanvas.SetActive(true);
         desktopInfoCanvas.SetActive(false);
 
+        if (!(cornerOneSet && cornerTwoSet && cornerThreeSet && cornerFourSet))
+        {
+            buttonCreateOptoGaitCube.GetComponent<Button>().interactable = false;
+        }
 
     }//StartCalibration()
+
+
+    public void CalibrationExit()
+    {
+        //this is called when pressing the "Back" button in the calibration menu
+
+
+
+        //Go back to main menu
+        StartMainMenu();
+    }
 
 
     public void StartTraining(int conditionNo)
@@ -1807,6 +1883,39 @@ public class ExperimentManager : MonoBehaviour
 
         print("Set corner" + number.ToString() + " position: " + controllerRight.transform.position.ToString());
 
+
+        //set flag
+        switch (number)
+        {
+            case 1:
+                {
+                    cornerOneSet = true;
+                    break;
+                }
+            case 2:
+                {
+                    cornerTwoSet = true;
+                    break;
+                }
+            case 3:
+                {
+                    cornerThreeSet = true;
+                    break;
+                }
+            case 4:
+                {
+                    cornerFourSet = true;
+                    break;
+                }
+        }
+
+
+        //check if all corners have been set
+        if (cornerOneSet && cornerTwoSet && cornerThreeSet && cornerFourSet)
+        {
+            buttonCreateOptoGaitCube.GetComponent<Button>().interactable = true;
+        }
+
     }
 
 
@@ -1861,6 +1970,10 @@ public class ExperimentManager : MonoBehaviour
         optoGait.transform.position = new Vector3(centroid.x, 0.1f, centroid.z);    //move to ground
         optoGait.transform.localScale = new Vector3(width, 0.2f, length);     //height is not relevant
         optoGait.transform.eulerAngles = new Vector3(0f, angle, 0f);
+
+
+        //set flag
+        gaitPositionsSet = true;
 
     }
 
