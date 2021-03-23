@@ -71,7 +71,7 @@ public class ExperimentManager : MonoBehaviour
     private string participantID;
     private int participantAge;
     private string participantGroup;
-    private string participantGender;
+    private string participantSex;
 
     private string tempMarkerText;
 
@@ -140,7 +140,7 @@ public class ExperimentManager : MonoBehaviour
     // Gameobject handles
     private GameObject mainMenuCanvas, configMenuCanvas, calibrationMenuCanvas, desktopInfoCanvas, expMenuCanvas,
         buttonExpMenu, buttonConnectRasPi, //buttonTraining, buttonBaselineWalking, buttonBaselineSitting, buttonSittingVisual, buttonSittingAudio, buttonWalkingST, buttonWalkingVisual, buttonWalkingAudio,
-        inputParticipantID, inputParticipantAge, inputParticipantGroup, inputParticipantGender,
+        inputParticipantID, inputParticipantAge, inputParticipantGroup, inputParticipantSex,
         configurationIncompleteText, calibrationIncompleteText, rasPiNotConnectedText, textCondition, textConditionRunNo, textTrialNo, textTrialInGaitNo,  textGaitPassNo, textTime,
         optoGait
         ;
@@ -179,7 +179,7 @@ public class ExperimentManager : MonoBehaviour
         inputParticipantID = GameObject.Find("InputParticipantID");
         inputParticipantAge = GameObject.Find("InputParticipantAge");
         inputParticipantGroup = GameObject.Find("DropdownParticipantGroup");
-        inputParticipantGender = GameObject.Find("DropdownParticipantGender");
+        inputParticipantSex = GameObject.Find("DropdownParticipantSex");
         calibrationMenuCanvas = GameObject.Find("CalibrationMenuCanvas");
         desktopInfoCanvas = GameObject.Find("DesktopInfoCanvas");
         textCondition = GameObject.Find("TextCondition");
@@ -485,11 +485,11 @@ public class ExperimentManager : MonoBehaviour
             genderSet = false;
         */
 
-        //participantGender
-        if (!inputParticipantGender.GetComponent<Dropdown>().options[inputParticipantGender.GetComponent<Dropdown>().value].text.Equals("?"))
+        //participantSex
+        if (!inputParticipantSex.GetComponent<Dropdown>().options[inputParticipantSex.GetComponent<Dropdown>().value].text.Equals("?"))
         {
             genderSet = true;
-            participantGender = inputParticipantGender.GetComponent<Dropdown>().options[inputParticipantGender.GetComponent<Dropdown>().value].text;
+            participantSex = inputParticipantSex.GetComponent<Dropdown>().options[inputParticipantSex.GetComponent<Dropdown>().value].text;
         }
         else
             genderSet = false;
@@ -499,7 +499,7 @@ public class ExperimentManager : MonoBehaviour
         Debug.Log("participantID: " + participantID + " InputField.text: " + inputParticipantID.GetComponent<InputField>().text);
         Debug.Log("participantAge: " + participantAge.ToString() + " InputField.text: " + inputParticipantAge.GetComponent<InputField>().text);
         Debug.Log("participantGroup: " + participantGroup + " InputField.text: " + inputParticipantGroup.GetComponent<Dropdown>().options[inputParticipantGroup.GetComponent<Dropdown>().value].text);
-        Debug.Log("participantGender: " + participantGender + " InputField.text: " + inputParticipantGender.GetComponent<Dropdown>().options[inputParticipantGender.GetComponent<Dropdown>().value].text);
+        Debug.Log("participantSex: " + participantSex + " InputField.text: " + inputParticipantSex.GetComponent<Dropdown>().options[inputParticipantSex.GetComponent<Dropdown>().value].text);
         */
 
         //Go back to main menu
@@ -638,7 +638,7 @@ public class ExperimentManager : MonoBehaviour
             "participantID:" + participantID + ";" +
             "participantAge:" + participantAge.ToString() + ";" +
             "participantGroup:" + participantGroup + ";" +
-            "participantGender:" + participantGender;
+            "participantSex:" + participantSex;
         marker.Write(tempMarkerText);
         Debug.Log(tempMarkerText);
 
@@ -715,7 +715,7 @@ public class ExperimentManager : MonoBehaviour
             "participantID:" + participantID + ";" +
             "participantAge:" + participantAge.ToString() + ";" +
             "participantGroup:" + participantGroup + ";" +
-            "participantGender:" + participantGender;
+            "participantSex:" + participantSex;
         marker.Write(tempMarkerText);
         Debug.Log(tempMarkerText);
 
@@ -843,7 +843,7 @@ public class ExperimentManager : MonoBehaviour
             "participantID:" + participantID + ";" +
             "participantAge:" + participantAge.ToString() + ";" +
             "participantGroup:" + participantGroup + ";" +
-            "participantGender:" + participantGender;
+            "participantSex:" + participantSex;
         marker.Write(tempMarkerText);
         Debug.Log(tempMarkerText);
 
@@ -910,7 +910,7 @@ public class ExperimentManager : MonoBehaviour
             "participantID:" + participantID + ";" +
             "participantAge:" + participantAge.ToString() + ";" +
             "participantGroup:" + participantGroup + ";" +
-            "participantGender:" + participantGender;
+            "participantSex:" + participantSex;
         marker.Write(tempMarkerText);
         Debug.Log(tempMarkerText);
 
@@ -991,7 +991,7 @@ public class ExperimentManager : MonoBehaviour
             "participantID:" + participantID + ";" +
             "participantAge:" + participantAge.ToString() + ";" +
             "participantGroup:" + participantGroup + ";" +
-            "participantGender:" + participantGender;
+            "participantSex:" + participantSex;
         marker.Write(tempMarkerText);
         Debug.Log(tempMarkerText);
 
@@ -1040,7 +1040,7 @@ public class ExperimentManager : MonoBehaviour
             "participantID:" + participantID + ";" +
             "participantAge:" + participantAge.ToString() + ";" +
             "participantGroup:" + participantGroup + ";" +
-            "participantGender:" + participantGender;
+            "participantSex:" + participantSex;
         marker.Write(tempMarkerText);
         Debug.Log(tempMarkerText);
 
