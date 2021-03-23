@@ -52,6 +52,12 @@ public class TriggerClicked : MonoBehaviour
 
             expManager.SetTriggerPressed(side);
         }
+        //check if SetGaitCorners is active
+        else if (expManager.GetSetGaitCornersActive())
+        {
+            expManager.SetCornerWithController();
+
+        }
         else
         {
             //write lsl marker

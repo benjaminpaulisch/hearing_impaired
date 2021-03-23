@@ -64,6 +64,7 @@ public class ExperimentManager : MonoBehaviour
     private Vector3 gaitCornerPositionFour;
     private Vector3[] corners = new Vector3[4];     //used to store the 4 corner positions of the OptoGait you can put in in the calibration menu
     private int controllerInsideGaitCounter = 0;              //used to store the amount of controllers inside OptoGait object collider
+    private int cornerCounter = 1;
 
     private float currentTime = 0;                  //current time value during a trial
     private float currentStimulusTime = 0;          //the time value when the stimulus was shown during the current trial
@@ -121,6 +122,7 @@ public class ExperimentManager : MonoBehaviour
     private bool cornerThreeSet = false;
     private bool cornerFourSet = false;
     private bool gaitPositionsSet = false;
+    private bool setGaitCornersActive = false;
     
 
     // Experiment logic handler
@@ -147,7 +149,7 @@ public class ExperimentManager : MonoBehaviour
 
     // Gameobject handles
     private GameObject mainMenuCanvas, configMenuCanvas, calibrationMenuCanvas, desktopInfoCanvas, expMenuCanvas,
-        buttonExpMenu, buttonConnectRasPi, buttonCreateOptoGaitCube, //buttonTraining, buttonBaselineWalking, buttonBaselineSitting, buttonSittingVisual, buttonSittingAudio, buttonWalkingST, buttonWalkingVisual, buttonWalkingAudio,
+        buttonExpMenu, buttonConnectRasPi, buttonCreateOptoGaitCube, buttonSetGaitCorners, //buttonTraining, buttonBaselineWalking, buttonBaselineSitting, buttonSittingVisual, buttonSittingAudio, buttonWalkingST, buttonWalkingVisual, buttonWalkingAudio,
         inputParticipantID, inputParticipantAge, inputParticipantGroup, inputParticipantSex,
         configurationIncompleteText, calibrationIncompleteText, rasPiNotConnectedText, textCondition, textConditionRunNo, textTrialNo, textTrialInGaitNo,  textGaitPassNo, textTime,
         optoGait
@@ -169,6 +171,7 @@ public class ExperimentManager : MonoBehaviour
         mainMenuCanvas = GameObject.Find("MainMenuCanvas");
         configurationIncompleteText = GameObject.Find("ConfigurationIncompleteText");
         calibrationIncompleteText = GameObject.Find("CalibrationIncompleteText");
+        buttonSetGaitCorners = GameObject.Find("ButtonSetGaitCorners");
         buttonCreateOptoGaitCube = GameObject.Find("ButtonCreateOptoGaitCube");
         buttonConnectRasPi = GameObject.Find("ButtonConnectRasPi");
         rasPiNotConnectedText = GameObject.Find("RasPiNotConnectedText");
@@ -255,6 +258,11 @@ public class ExperimentManager : MonoBehaviour
 
                 case 2: //calibration
                     {
+                        if (setGaitCornersActive)
+                        {
+
+                        }
+
                         break;
                     }
 
@@ -1870,7 +1878,44 @@ public class ExperimentManager : MonoBehaviour
         return responseActive;
     }
 
-   
+
+
+    public void SetCornerWithController()
+    {
+        SetCorner(cornerCounter);
+
+        cornerCounter += 1;
+
+        if (cornerCounter > 4)
+        {
+            SetGaitCornersActive(false);
+            cornerCounter = 1;
+
+            buttonSetGaitCorners.GetComponent<Button>().interactable = true;
+        }
+
+    }
+
+
+    public bool GetSetGaitCornersActive()
+    {
+        return setGaitCornersActive;
+    }
+
+
+    public void SetGaitCornersActive(bool active)
+    {
+        //Debug.Log("Setting SetGaitCornersActive: " + BoolToString(active));
+
+        if (active)
+        {
+            buttonSetGaitCorners.GetComponent<Button>().interactable = false;
+        }
+
+        setGaitCornersActive = active;
+    }
+
+
     public void SetCorner(int number)
     {
         //this method is executed when pressing a "Set Gait Corner" button in the Calibration menu
