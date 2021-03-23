@@ -97,6 +97,7 @@ public class ExperimentManager : MonoBehaviour
     private string responseSide = "";
     private bool responseActive = false;
     //public static bool responseActive = false;
+    private bool insideGait = false;
 
     // Training specific
     private int trainingVisualRunNo = 0;
@@ -1076,8 +1077,9 @@ public class ExperimentManager : MonoBehaviour
         //if ((currentConditionNo == 2 || currentConditionNo == 4) && !experimentEnd) //not condition ST_walking!
         if ((currentConditionNo == 2 || currentConditionNo == 4 || currentConditionNo == 7 || currentConditionNo == 8) && !experimentEnd) //added trainings
         {
-
-            if (controllerInsideGaitCounter == 2)
+            //check if participant is inside the OptoGait
+            //if (controllerInsideGaitCounter == 2)
+            if (insideGait)
             {
                 //check if it's a new inside gait
                 if (!experimentStarted)
@@ -1094,7 +1096,7 @@ public class ExperimentManager : MonoBehaviour
             }
             else
             {
-                //if not inside gait
+                //if not inside OptoGait
 
                 //abort current trial if it's a new outside gait
                 if (experimentStarted)
@@ -1872,8 +1874,12 @@ public class ExperimentManager : MonoBehaviour
         print("foot inside gait: " + controllerInsideGaitCounter.ToString());
 
         //check if new gait pass:
-        if (controllerInsideGaitCounter == 2)
+        //if (controllerInsideGaitCounter == 2)
+        if (controllerInsideGaitCounter == 1)   //the first foot
         {
+            //set insideGait flag
+            insideGait = true;
+
             //increment gait pass counter
             gaitPassCounter += 1;
 
@@ -1898,12 +1904,18 @@ public class ExperimentManager : MonoBehaviour
     {
         controllerInsideGaitCounter -= 1;
 
+        if(controllerInsideGaitCounter == 0)
+        {
+            //set insideGait flag
+            insideGait = false;
+
+            //change color of optogait object
+            optoGait.GetComponent<MeshRenderer>().material.color = Color.yellow;
+        }
+
         //lsl marker
         marker.Write("controller inside Gait:" + controllerInsideGaitCounter.ToString());
         print("controller inside gait: " + controllerInsideGaitCounter.ToString());
-
-        //change color of optogait object
-        optoGait.GetComponent<MeshRenderer>().material.color = Color.yellow;
 
     }
 
