@@ -7,9 +7,9 @@ namespace Assets.LSL4Unity.Scripts
     [HelpURL("https://github.com/xfleckx/LSL4Unity/wiki#using-a-marker-stream")]
     public class LSLMarkerStream : MonoBehaviour
     {
-        private const string unique_source_id = "D3F83BB699EB49AB94A9FA44B88882AB";
+        private const string unique_source_id = "D3F83BB699EB49AB94A9FA44B88882ABSR";
 
-        public string lslStreamName = "HearingImpaired_Unity3D_Events";
+        public string lslStreamName = "HearingImpaired_Unity3D_OptoGaitEvents";
         public string lslStreamType = "LSL_Marker_Strings";
 
         private liblsl.StreamInfo lslStreamInfo;

@@ -2,7 +2,6 @@
 using UnityEngine.UI;
 using Assets.LSL4Unity.Scripts; // reference the LSL4Unity namespace to get access to all classes
 using LSL;
-using System.Collections.Generic;
 
 public class ExperimentManager : MonoBehaviour
 {
