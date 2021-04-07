@@ -46,9 +46,12 @@ public class ExperimentManager : MonoBehaviour
         { 4, 1, 2, 3, 0 },      //Sequence 9
         { 4, 1, 0, 3, 2 },      //Sequence 10
         { 4, 3, 2, 1, 0 },      //Sequence 11
-        { 4, 3, 0, 1, 2 }      //Sequence 12
+        { 4, 3, 0, 1, 2 }       //Sequence 12
         };
     private int currentConditionNo;
+    private int currentSequenceNo;
+    private int[] currentSequence = new int[5];
+    private int currentSequenceCounter;
 
     private string[] visualStimuli = new string[4] { "left_yellow", "left_blue", "right_yellow", "right_blue" };
     private string[] audioStimuli = new string[4] { "left_high", "left_low", "right_high", "right_low" };
@@ -122,9 +125,10 @@ public class ExperimentManager : MonoBehaviour
     private bool cornerFourSet = false;
     private bool gaitPositionsSet = false;
     private bool setGaitCornersActive = false;
-    
+
 
     // Experiment logic handler
+    private bool sequenceStarted = false;
     private bool experimentStarted = false;
     private bool expInitRun = false;
     private bool experimentEnd = false;
@@ -147,9 +151,9 @@ public class ExperimentManager : MonoBehaviour
 
 
     // Gameobject handles
-    private GameObject mainMenuCanvas, configMenuCanvas, calibrationMenuCanvas, desktopInfoCanvas, expMenuCanvas,
-        buttonExpMenu, buttonConnectRasPi, buttonCreateOptoGaitCube, buttonSetGaitCorners, //buttonTraining, buttonBaselineWalking, buttonBaselineSitting, buttonSittingVisual, buttonSittingAudio, buttonWalkingST, buttonWalkingVisual, buttonWalkingAudio,
-        inputParticipantID, inputParticipantAge, inputParticipantGroup, inputParticipantSex,
+    private GameObject mainMenuCanvas, configMenuCanvas, calibrationMenuCanvas, desktopInfoCanvas, expMenuCanvas, expBlockMenuCanvas,
+        buttonExpMenu, buttonConnectRasPi, buttonCreateOptoGaitCube, buttonSetGaitCorners, buttonExpSequence, //buttonTraining, buttonBaselineWalking, buttonBaselineSitting, buttonSittingVisual, buttonSittingAudio, buttonWalkingST, buttonWalkingVisual, buttonWalkingAudio,
+        inputParticipantID, inputParticipantAge, inputParticipantGroup, inputParticipantSex, inputSequence,
         configurationIncompleteText, calibrationIncompleteText, rasPiNotConnectedText, textCondition, textConditionRunNo, textTrialNo, textTrialInGaitNo,  textGaitPassNo, textTime,
         optoGait
         ;
@@ -175,7 +179,9 @@ public class ExperimentManager : MonoBehaviour
         buttonConnectRasPi = GameObject.Find("ButtonConnectRasPi");
         rasPiNotConnectedText = GameObject.Find("RasPiNotConnectedText");
         buttonExpMenu = GameObject.Find("ButtonExpMenu");
+        buttonExpSequence = GameObject.Find("ButtonExpSequence");
         expMenuCanvas = GameObject.Find("ExpMenuCanvas");
+        expBlockMenuCanvas = GameObject.Find("ExpBlockMenuCanvas");
         /*
         buttonTraining = GameObject.Find("ButtonTraining");
         buttonBaselineWalking = GameObject.Find("ButtonBaselineWalking");
@@ -202,6 +208,7 @@ public class ExperimentManager : MonoBehaviour
         controllerLeft = GameObject.Find("Controller (left)");
         controllerRight = GameObject.Find("Controller (right)");
         optoGait = GameObject.Find("OptoGait");
+        inputSequence = GameObject.Find("DropdownExpSequence");
 
         if (!debugMode)
         {
@@ -418,6 +425,7 @@ public class ExperimentManager : MonoBehaviour
         //activate/deactivate GameObjects
         mainMenuCanvas.SetActive(true);
         expMenuCanvas.SetActive(false);
+        expBlockMenuCanvas.SetActive(false);
         configMenuCanvas.SetActive(false);
         calibrationMenuCanvas.SetActive(false);
         desktopInfoCanvas.SetActive(false);
@@ -475,6 +483,30 @@ public class ExperimentManager : MonoBehaviour
         //activate/deactivate GameObjects
         mainMenuCanvas.SetActive(false);
         expMenuCanvas.SetActive(true);
+        expBlockMenuCanvas.SetActive(false);
+        configMenuCanvas.SetActive(false);
+        calibrationMenuCanvas.SetActive(false);
+        desktopInfoCanvas.SetActive(false);
+
+        CheckSequenceInput();
+
+    }
+
+
+    public void StartExpBlockMenu()
+    {
+        //This method is used for starting the experiment menu.
+        Debug.Log("Starting Experiment Block Menu");
+        programStatus = 3;
+
+        expInitRun = false;
+        baselineInitRun = false;
+        trainingInitRun = false;
+
+        //activate/deactivate GameObjects
+        mainMenuCanvas.SetActive(false);
+        expMenuCanvas.SetActive(false);
+        expBlockMenuCanvas.SetActive(true);
         configMenuCanvas.SetActive(false);
         calibrationMenuCanvas.SetActive(false);
         desktopInfoCanvas.SetActive(false);
@@ -491,6 +523,7 @@ public class ExperimentManager : MonoBehaviour
         //activate/deactivate GameObjects
         mainMenuCanvas.SetActive(false);
         expMenuCanvas.SetActive(false);
+        expBlockMenuCanvas.SetActive(false);
         configMenuCanvas.SetActive(true);
         calibrationMenuCanvas.SetActive(false);
         desktopInfoCanvas.SetActive(false);
@@ -586,6 +619,7 @@ public class ExperimentManager : MonoBehaviour
         //activate/deactivate GameObjects
         mainMenuCanvas.SetActive(false);
         expMenuCanvas.SetActive(false);
+        expBlockMenuCanvas.SetActive(false);
         configMenuCanvas.SetActive(false);
         calibrationMenuCanvas.SetActive(true);
         desktopInfoCanvas.SetActive(false);
@@ -621,6 +655,7 @@ public class ExperimentManager : MonoBehaviour
         //activate/deactivate GameObjects
         mainMenuCanvas.SetActive(false);
         expMenuCanvas.SetActive(false);
+        expBlockMenuCanvas.SetActive(false);
         configMenuCanvas.SetActive(false);
         calibrationMenuCanvas.SetActive(false);
         desktopInfoCanvas.SetActive(true);
@@ -641,6 +676,7 @@ public class ExperimentManager : MonoBehaviour
         //activate/deactivate GameObjects
         mainMenuCanvas.SetActive(false);
         expMenuCanvas.SetActive(false);
+        expBlockMenuCanvas.SetActive(false);
         configMenuCanvas.SetActive(false);
         calibrationMenuCanvas.SetActive(false);
         desktopInfoCanvas.SetActive(true);
@@ -660,6 +696,7 @@ public class ExperimentManager : MonoBehaviour
         //activate/deactivate GameObjects
         mainMenuCanvas.SetActive(false);
         expMenuCanvas.SetActive(false);
+        expBlockMenuCanvas.SetActive(false);
         configMenuCanvas.SetActive(false);
         calibrationMenuCanvas.SetActive(false);
         desktopInfoCanvas.SetActive(true);
@@ -667,7 +704,39 @@ public class ExperimentManager : MonoBehaviour
     }//StartExperiment()
 
 
-    
+    public void StartExperimentSequence()
+    {
+        //This method is run when pressing the "Start Exp Sequence" button in the experiment menu.
+        marker.Write("Experiment menu: Start Exp Sequence button pressed");
+        Debug.Log("Starting Experiment Sequence...");
+
+        programStatus = 5;
+
+        //get sequence number from dropdown
+        currentSequenceNo = inputSequence.GetComponent<Dropdown>().value;
+
+        marker.Write("StartExpSequence:" + currentSequenceNo.ToString());
+        Debug.Log("Current Sequence: " + currentSequenceNo.ToString());
+
+        //currentSequence = conditionSequences[currentSequenceNo-1];
+        currentSequenceCounter = 0;
+        sequenceStarted = true;
+
+        //set current condition
+        currentConditionNo = conditionSequences[currentSequenceNo - 1, currentSequenceCounter];
+
+
+        //activate/deactivate GameObjects
+        mainMenuCanvas.SetActive(false);
+        expMenuCanvas.SetActive(false);
+        expBlockMenuCanvas.SetActive(false);
+        configMenuCanvas.SetActive(false);
+        calibrationMenuCanvas.SetActive(false);
+        desktopInfoCanvas.SetActive(true);
+
+    }//StartExperimentSequence()
+
+
     //Init methods
 
     /*
@@ -1147,6 +1216,22 @@ public class ExperimentManager : MonoBehaviour
     }//InitWalkingST()
 
 
+    private void NextBlock()
+    {
+        //increment sequence counter
+        currentSequenceCounter += 1;
+
+        /*
+        //check if sequence is finished
+        if (currentSequenceCounter == conditionSequences[])
+        {
+
+        }
+        */
+
+    }//NextBlock()
+
+
     void RunExperiment()
     {
         //controls all trials during an experiment run
@@ -1342,8 +1427,17 @@ public class ExperimentManager : MonoBehaviour
 
             experimentStarted = false;
 
-            //go to exp menu
-            StartExpMenu();
+            //if sequece -> go to next block
+            if (sequenceStarted)
+            {
+                NextBlock();
+            }
+            else
+            {
+                //go to exp menu
+                StartExpMenu();
+            }
+            
         }
 
     }//RunExperiment()
@@ -2194,5 +2288,21 @@ public class ExperimentManager : MonoBehaviour
         buttonConnectRasPi.GetComponent<Button>().interactable = true;
 
     }
+
+
+    public void CheckSequenceInput()
+    {
+        //Debug.Log("inputSequence: " +  inputSequence.GetComponent<Dropdown>().options[inputSequence.GetComponent<Dropdown>().value].text);
+        if (inputSequence.GetComponent<Dropdown>().options[inputSequence.GetComponent<Dropdown>().value].text.Equals("?"))
+        {
+            buttonExpSequence.GetComponent<Button>().interactable = false;
+        }
+        else
+        {
+            buttonExpSequence.GetComponent<Button>().interactable = true;
+        }
+
+    }
+
 
 }//class
