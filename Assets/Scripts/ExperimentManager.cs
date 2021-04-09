@@ -72,7 +72,8 @@ public class ExperimentManager : MonoBehaviour
     private float currentStimulusTime = 0;          //the time value when the stimulus was shown during the current trial
     private float currentResponseTime = 0;          //calculated response time (duration)
 
-    private string participantID;
+    [HideInInspector] // Hides var below
+    public string participantID;
     private int participantAge;
     private string participantGroup;
     private string participantSex;

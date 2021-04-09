@@ -9,6 +9,7 @@ using System.Xml.Linq;
 using Assets.LSL4Unity.Scripts; // reference the LSL4Unity namespace to get access to all classes
 using Microgate.Opto.API.Entities;  //I put the dlls from the OptoAPI-TstClient in the Assets folder
 using Microgate.Opto.API;
+using Microgate.Opto.API.Biz;
 
 // This client app is sending requests to the OptoAPI service which is a tcp listening server.   
 // Both listening server and client can send messages back and forth once a communication is established.
@@ -19,6 +20,7 @@ public class OptoApiClient : MonoBehaviour
     public String hostIP = "127.0.0.1";
     public int hostPort = 31967;
     public LSLMarkerStream optoGaitEvents;
+    public ExperimentManager manager;
 
 
     private Socket socket;
@@ -27,6 +29,8 @@ public class OptoApiClient : MonoBehaviour
     private char stx = (char)0x02;  //start of command
     private char etx = (char)0x03;  //end of command
 
+    private String sprintGaitConfig; 
+        
 
     //logic handles
     private bool socketInitialized = false;
@@ -35,7 +39,6 @@ public class OptoApiClient : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
         
     }
 
@@ -191,6 +194,62 @@ public class OptoApiClient : MonoBehaviour
 
 
     }//CheckConnection()
+
+
+    private void InitializeTest()
+    {
+        //Create config
+        //SprintGaitConfig gaitconfig = new SprintGaitConfig();
+
+        sprintGaitConfig =
+        "<?xml version=\"1.0\" encoding=\"utf-16\"?>" +
+        "<SprintGaitConfig xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">" +
+          "<TestName>GaitTest_" + manager.participantID + "</TestName>" +
+          "<PersonWeight>0</PersonWeight>" +
+          "<PersonFootLength>0</PersonFootLength>" +
+          "<PersonFootWidth>0</PersonFootWidth>" +
+          "<GetRawData>true</GetRawData>" +
+          "<AutoStartTest xsi:nil=\"true\" />" +
+          "<StartTestDelay xsi:nil=\"true\" />" +
+          "<CancelLastTest xsi:nil=\"true\" />" +
+          "<Type>Gait</Type>" +
+          "<ResultType>Row</ResultType>" +
+          "<Start>SoftwareCommand</Start>" +
+          "<StartPosition>OutSideArea</StartPosition>" +
+          "<Stop>SoftwareCommand</Stop>" +
+          "<StopPosition>OutSideArea</StopPosition>" +
+          "<StartingFoot>NotDefined</StartingFoot>" +
+          "<NumberOfIntermediate>0</NumberOfIntermediate>" +
+          "<NumberOfStep>0</NumberOfStep>" +
+          "<EnableEMGVirtualFootswitch>false</EnableEMGVirtualFootswitch>" +
+          "<Template>None</Template>" +
+          "<Parameters>" +
+            "<MinimumContactTime>10</MinimumContactTime>" +
+            "<MinimumFlightTime>10</MinimumFlightTime>" +
+            "<MaximumFlightTime>0</MaximumFlightTime>" +
+            "<TimeoutContactTime xsi:nil=\"true\" />" +
+            "<TimeoutFlightTime xsi:nil=\"true\" />" +
+            "<ExternalSignalHoldoff>500</ExternalSignalHoldoff>" +
+            "<EntryPoint>Automatic</EntryPoint>" +
+            "<StepLengthCalculation>Tip2Tip</StepLengthCalculation>" +
+            "<MinimumGapFeet>10</MinimumGapFeet>" +
+            "<MinimumFootLength>5</MinimumFootLength>" +
+            "<MinimumFootWidth>3</MinimumFootWidth>" +
+            "<MinimumGapFeetWidth>3</MinimumGapFeetWidth>" +
+            "<DistanceSplit1>0</DistanceSplit1>" +
+            "<DistanceSplit2>0</DistanceSplit2>" +
+            "<TestTimeout>3000</TestTimeout>" +
+            "<ReferenceSpeedAtStep3>6</ReferenceSpeedAtStep3>" +
+            "<ReferenceSpeedAtStep6>8</ReferenceSpeedAtStep6>" +
+            "<ReferenceSpeedAtStep9>9</ReferenceSpeedAtStep9>" +
+            "<DiscardFirstStep>0</DiscardFirstStep>" +
+            "<DiscardLastStep>0</DiscardLastStep>" +
+            "<FootFilterAtBeginEnd>false</FootFilterAtBeginEnd>" +
+          "</Parameters>" +
+        "</SprintGaitConfig>"
+        ;
+
+    }//InitializeTest()
 
 
     private bool SendRequest(String command)
