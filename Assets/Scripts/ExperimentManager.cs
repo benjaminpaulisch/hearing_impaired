@@ -11,6 +11,7 @@ public class ExperimentManager : MonoBehaviour
     public float isiDurationVariation = 0.5f;       //0.5s variation (so the ISI duration range is betweeen 0.5s and 1.5s)
     public float stimulusDuration = 0.1f;           //100ms stimulus duration
     public int ledBrightness = 10;                  //should be a value 0-100 (0=off)
+    public int audioVolume = 1;                     //should be a value 0-1
     public float responseTimeMax = 1.9f;            //1.5s max possible response time
     public bool debugMode = false;
 
@@ -1852,13 +1853,20 @@ public class ExperimentManager : MonoBehaviour
         if (pitch == "high")
         {
             audioSource_high.panStereo = stereoPan;
+            audioSource_high.volume = audioVolume;
             audioSource_high.Play();
         }
         else if (pitch == "low")
         {
             audioSource_low.panStereo = stereoPan;
+            audioSource_high.volume = audioVolume;
             audioSource_low.Play();
         }
+
+        //for testing: also send sound command to RasPi
+        string[] sample = { "audio;" + side + ";" + pitch + ";" + audioVolume.ToString() + ";" + (stimulusDuration * 1000).ToString() };    //convert s to ms
+        //ToDo: try catch block!
+        visualStimulusStreamOutlet.push_sample(sample);
 
         //send lsl marker
         tempMarkerText =
