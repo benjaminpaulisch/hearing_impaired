@@ -35,20 +35,7 @@ public class ExperimentManager : MonoBehaviour
 
     // General vars
     private string[] conditions = new string[9] { "ST_walking", "ST_audio", "DT_audio", "ST_visual",  "DT_visual", "BL_sitting", "BL_walking", "Training_audio", "Training_visual" };
-    private int[,] conditionSequences = new int[12, 5] {        //the 12 sequences from the ethics document
-        { 0, 1, 2, 3, 4 },      //Sequence 1
-        { 0, 1, 4, 3, 2 },      //Sequence 2
-        { 0, 3, 2, 1, 4 },      //Sequence 3
-        { 0, 3, 4, 1, 2 },      //Sequence 4
-        { 2, 1, 0, 3, 4 },      //Sequence 5
-        { 2, 1, 4, 3, 0 },      //Sequence 6
-        { 2, 3, 0, 1, 4 },      //Sequence 7
-        { 2, 3, 4, 1, 0 },      //Sequence 8
-        { 4, 1, 2, 3, 0 },      //Sequence 9
-        { 4, 1, 0, 3, 2 },      //Sequence 10
-        { 4, 3, 2, 1, 0 },      //Sequence 11
-        { 4, 3, 0, 1, 2 }       //Sequence 12
-        };
+    private int[][] conditionSequences = new int[12][];
     private int currentConditionNo;
     private int currentSequenceNo;
     private int[] currentSequence = new int[5];
@@ -171,6 +158,20 @@ public class ExperimentManager : MonoBehaviour
     {
         // Start is called before the first frame update
 
+        //the 12 sequences from the ethics document
+        conditionSequences[0] = new int[] { 0, 1, 2, 3, 4 };      //Sequence 1
+        conditionSequences[1] = new int[] { 0, 1, 4, 3, 2 };      //Sequence 2
+        conditionSequences[2] = new int[] { 0, 3, 2, 1, 4 };      //Sequence 3
+        conditionSequences[3] = new int[] { 0, 3, 4, 1, 2 };      //Sequence 4
+        conditionSequences[4] = new int[] { 2, 1, 0, 3, 4 };      //Sequence 5
+        conditionSequences[5] = new int[] { 2, 1, 4, 3, 0 };      //Sequence 6
+        conditionSequences[6] = new int[] { 2, 3, 0, 1, 4 };      //Sequence 7
+        conditionSequences[7] = new int[] { 2, 3, 4, 1, 0 };      //Sequence 8
+        conditionSequences[8] = new int[] { 4, 1, 2, 3, 0 };      //Sequence 9
+        conditionSequences[9] = new int[] { 4, 1, 0, 3, 2 };      //Sequence 10
+        conditionSequences[10] = new int[] { 4, 3, 2, 1, 0 };      //Sequence 11
+        conditionSequences[11] = new int[] { 4, 3, 0, 1, 2 };      //Sequence 12
+
         // Finding the game objects:
         marker = FindObjectOfType<LSLMarkerStream>();
         mainMenuCanvas = GameObject.Find("MainMenuCanvas");
@@ -239,12 +240,12 @@ public class ExperimentManager : MonoBehaviour
             //try to fetch SteamVR controllers (as they tend to be available a few frames after the start)
             if (controllerLeft == null)
             {
-                Debug.Log("Controller (left) is null");
+                //Debug.Log("Controller (left) is null");
                 controllerLeft = GameObject.Find("Controller (left)");
             }
             if (controllerRight == null)
             {
-                Debug.Log("Controller (right) is null");
+                //Debug.Log("Controller (right) is null");
                 controllerRight = GameObject.Find("Controller (right)");
             }
             
@@ -690,7 +691,7 @@ public class ExperimentManager : MonoBehaviour
     {
         //This method is used for all "Start Block" buttons in the main menu. If one of these buttons is pressed this method is executed.
         marker.Write("Main menu: Start Block: " + conditions[conditionNo] + " button pressed");
-        Debug.Log("Starting Experiment");
+        Debug.Log("Starting Experiment Block: " + conditions[conditionNo]);
         programStatus = 5;
 
         currentConditionNo = conditionNo;
@@ -716,6 +717,7 @@ public class ExperimentManager : MonoBehaviour
 
         //get sequence number from dropdown
         currentSequenceNo = inputSequence.GetComponent<Dropdown>().value;
+        currentSequence = conditionSequences[currentSequenceNo - 1];
 
         marker.Write("StartExpSequence:" + currentSequenceNo.ToString());
         Debug.Log("Current Sequence: " + currentSequenceNo.ToString());
@@ -725,8 +727,7 @@ public class ExperimentManager : MonoBehaviour
         sequenceStarted = true;
 
         //set current condition
-        currentConditionNo = conditionSequences[currentSequenceNo - 1, currentSequenceCounter];
-
+        currentConditionNo = conditionSequences[currentSequenceNo - 1][currentSequenceCounter];
 
         //activate/deactivate GameObjects
         mainMenuCanvas.SetActive(false);
@@ -1223,13 +1224,28 @@ public class ExperimentManager : MonoBehaviour
         //increment sequence counter
         currentSequenceCounter += 1;
 
-        /*
+        //reset vars
+        experimentEnd = false;
+        expInitRun = false;
+
         //check if sequence is finished
-        if (currentSequenceCounter == conditionSequences[])
+        if (currentSequenceCounter == conditionSequences[currentSequenceNo].Length)
         {
+            //end sequence run
+            print("Sequence end");
+
+            StartExpMenu();
 
         }
-        */
+        else
+        {
+            //start next block
+            print("Starting next block: " + conditions[currentSequence[currentSequenceCounter]]);
+            
+            StartExperiment(currentSequence[currentSequenceCounter]);
+
+        }
+        
 
     }//NextBlock()
 
@@ -1281,6 +1297,7 @@ public class ExperimentManager : MonoBehaviour
                         {
                             //set flag for experiment end
                             experimentEnd = true;
+                            print("experimentEnd = true");
                         }
                     }
                     else if (currentConditionNo == 7 || currentConditionNo == 8)
@@ -1289,6 +1306,7 @@ public class ExperimentManager : MonoBehaviour
                         {
                             //set flag for experiment end
                             experimentEnd = true;
+                            print("experimentEnd = true");
                         }
                     }
                     else if (!maxGaitTrialsReached)  //only abort if max gait trials were not reached
@@ -1322,6 +1340,7 @@ public class ExperimentManager : MonoBehaviour
                 {
                     //set flag for experiment end
                     experimentEnd = true;
+                    print("experimentEnd = true");
                 }
 
                 //update desktop info texts
@@ -1434,10 +1453,15 @@ public class ExperimentManager : MonoBehaviour
             {
                 NextBlock();
             }
-            else
+            else if(trainingStarted || baselineStarted)
             {
                 //go to exp menu
                 StartExpMenu();
+            }
+            else
+            {
+                //go to exp block menu
+                StartExpBlockMenu();
             }
             
         }
@@ -1688,7 +1712,6 @@ public class ExperimentManager : MonoBehaviour
             //single task sitting conditions
             if (trialCounter == trialsPerBlock)
             {
-
                 //set flag for experiment end and don't start another trial
                 experimentEnd = true;
 
