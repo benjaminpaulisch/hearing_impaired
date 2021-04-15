@@ -29,6 +29,9 @@ public class ExperimentManager : MonoBehaviour
 
     [Header("Misc")]
     public LSLMarkerStream marker;
+    public OptoApiClient optoApiClient;
+    public string optoApiHostIP = "127.0.0.1";
+    public int optoApiHostPort = 31967;
 
     //##########
 
@@ -144,7 +147,7 @@ public class ExperimentManager : MonoBehaviour
         buttonExpMenu, buttonConnectRasPi, buttonCreateOptoGaitCube, buttonSetGaitCorners, buttonExpSequence, //buttonTraining, buttonBaselineWalking, buttonBaselineSitting, buttonSittingVisual, buttonSittingAudio, buttonWalkingST, buttonWalkingVisual, buttonWalkingAudio,
         inputParticipantID, inputParticipantAge, inputParticipantGroup, inputParticipantSex, inputSequence,
         configurationIncompleteText, calibrationIncompleteText, rasPiNotConnectedText, textCondition, textConditionRunNo, textTrialNo, textTrialInGaitNo,  textGaitPassNo, textTime,
-        optoGait
+        optoGait, optoGaitConnectionText
         ;
 
     public AudioSource audioSource_high, audioSource_low;
@@ -174,6 +177,7 @@ public class ExperimentManager : MonoBehaviour
 
         // Finding the game objects:
         marker = FindObjectOfType<LSLMarkerStream>();
+        optoApiClient = FindObjectOfType<OptoApiClient>();
         mainMenuCanvas = GameObject.Find("MainMenuCanvas");
         configurationIncompleteText = GameObject.Find("ConfigurationIncompleteText");
         calibrationIncompleteText = GameObject.Find("CalibrationIncompleteText");
@@ -211,6 +215,7 @@ public class ExperimentManager : MonoBehaviour
         controllerLeft = GameObject.Find("Controller (left)");
         controllerRight = GameObject.Find("Controller (right)");
         optoGait = GameObject.Find("OptoGait");
+        optoGaitConnectionText = GameObject.Find("OptoGaitConnectionText");
         inputSequence = GameObject.Find("DropdownExpSequence");
 
         if (!debugMode)
@@ -956,6 +961,10 @@ public class ExperimentManager : MonoBehaviour
             //Create isi durations for the block
             isiDurations = CreateDurationsArray(gaitPassesPerBlock * trialsPerGaitPass, isiDurationAvg, isiDurationVariation);
 
+
+            //initialize OptoGait measurement
+            optoApiClient.InitializeTest(participantID);
+
         }
         else
         {
@@ -1214,6 +1223,10 @@ public class ExperimentManager : MonoBehaviour
         SetDesktopInfoTexts(conditions[currentConditionNo], stWalkingRunNo.ToString(), "-", "-", "", "-");
 
 
+        //initialize OptoGait measurement
+        optoApiClient.InitializeTest(participantID);
+
+
         expInitRun = true;
 
     }//InitWalkingST()
@@ -1290,6 +1303,14 @@ public class ExperimentManager : MonoBehaviour
                     //abort current trial
                     experimentStarted = false;
 
+                    //end OptoGait measurement (not during training)
+                    if (!trainingStarted)
+                    {
+                        optoApiClient.EndTest();
+
+                    }
+
+
                     //check if current gait was the last
                     if (currentConditionNo == 2 || currentConditionNo == 4) 
                     {
@@ -1309,14 +1330,27 @@ public class ExperimentManager : MonoBehaviour
                             print("experimentEnd = true");
                         }
                     }
-                    else if (!maxGaitTrialsReached)  //only abort if max gait trials were not reached
+                    else 
                     {
-                        //lsl marker
-                        marker.Write("trialAbort:" + trialCounter.ToString());
-                        Debug.Log("trial aborted! TrialNo:" + trialCounter.ToString());
+                        //current gait was not the last
 
-                        //go to next trial
-                        NextTrial();
+                        //initialize new Optogait measurement for next gait (not during training)
+                        if (!trainingStarted)
+                        {
+                            optoApiClient.InitializeTest(participantID);
+
+                        }
+                        
+
+                        if (!maxGaitTrialsReached)  //only abort if max gait trials were not reached
+                        {
+                            //lsl marker
+                            marker.Write("trialAbort:" + trialCounter.ToString());
+                            Debug.Log("trial aborted! TrialNo:" + trialCounter.ToString());
+
+                            //go to next trial
+                            NextTrial();
+                        }
                     }
 
                 }
@@ -2332,6 +2366,22 @@ public class ExperimentManager : MonoBehaviour
         else
         {
             buttonExpSequence.GetComponent<Button>().interactable = true;
+        }
+
+    }
+
+
+    public void ConnectOptoGait()
+    {
+        optoGaitConnectionText.GetComponent<Text>().color = Color.red;
+
+        if (optoApiClient.InitSocket(optoApiHostIP, optoApiHostPort))
+        {
+            if (optoApiClient.CheckConnection(optoApiHostIP, optoApiHostPort))
+            {
+                //connected to OptoGait
+                optoGaitConnectionText.GetComponent<Text>().color = Color.green;
+            }
         }
 
     }

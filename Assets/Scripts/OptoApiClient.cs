@@ -9,7 +9,7 @@ using System.Xml.Linq;
 using Assets.LSL4Unity.Scripts; // reference the LSL4Unity namespace to get access to all classes
 using Microgate.Opto.API.Entities;  //I put the dlls from the OptoAPI-TstClient in the Assets folder
 using Microgate.Opto.API;
-using Microgate.Opto.API.Biz;
+//using Microgate.Opto.API.Biz;
 
 // This client app is sending requests to the OptoAPI service which is a tcp listening server.   
 // Both listening server and client can send messages back and forth once a communication is established.
@@ -17,11 +17,7 @@ using Microgate.Opto.API.Biz;
 
 public class OptoApiClient : MonoBehaviour
 {
-    public String hostIP = "127.0.0.1";
-    public int hostPort = 31967;
     public LSLMarkerStream optoGaitEvents;
-    public ExperimentManager manager;
-
 
     private Socket socket;
     private byte[] bytes = new byte[1024];
@@ -29,8 +25,8 @@ public class OptoApiClient : MonoBehaviour
     private char stx = (char)0x02;  //start of command
     private char etx = (char)0x03;  //end of command
 
-    private String sprintGaitConfig; 
-        
+    private String sprintGaitConfig;
+    private Microgate.Opto.API.Entities.SprintGaitConfig gc;
 
     //logic handles
     private bool socketInitialized = false;
@@ -49,7 +45,7 @@ public class OptoApiClient : MonoBehaviour
     }
 
 
-    private bool InitSocket(string host, int port)
+    public bool InitSocket(string host, int port)
     {
         // Connect to a Remote server  
         // Get Host IP Address that is used to establish a connection
@@ -66,13 +62,13 @@ public class OptoApiClient : MonoBehaviour
         try
         {
             // Connect to Remote EndPoint  
-            Debug.Log("Connecting to OptoGait at " + socket.RemoteEndPoint.ToString());
-            optoGaitEvents.Write("Connecting to OptoGait at " + socket.RemoteEndPoint.ToString());
+            Debug.Log("Connecting to OptoGait at " + remoteEP.ToString());
+            optoGaitEvents.Write("Connecting to OptoGait at " + remoteEP.ToString());
 
             socket.Connect(remoteEP);
 
-            Debug.Log("Connection to OptoAPI successful");
-            optoGaitEvents.Write("Connection to OptoAPI successful");
+            Debug.Log("Connection to OptoAPI server successful");
+            optoGaitEvents.Write("Connection to OptoAPI server successful");
 
             socketInitialized = true;
 
@@ -101,7 +97,7 @@ public class OptoApiClient : MonoBehaviour
     }//InitSocket()
 
 
-    private bool CloseSocket()
+    public bool CloseSocket()
     {
         // Release the socket
 
@@ -142,7 +138,7 @@ public class OptoApiClient : MonoBehaviour
     }
 
 
-    private bool CheckConnection(String ip, int port)
+    public bool CheckConnection(String ip, int port)
     {
         //Checks if the hardware connection to the OptoGait 
 
@@ -196,15 +192,29 @@ public class OptoApiClient : MonoBehaviour
     }//CheckConnection()
 
 
-    private void InitializeTest()
+    public void InitializeTest(String participantID)
     {
         //Create config
-        //SprintGaitConfig gaitconfig = new SprintGaitConfig();
+        Microgate.Opto.API.Entities.SprintGaitConfig gaitconfig = new Microgate.Opto.API.Entities.SprintGaitConfig();
 
+        gc = new Microgate.Opto.API.Entities.SprintGaitConfig();
+        gc.TestName = "GaitTest_" + participantID;
+        gc.GetRawData = true;
+        gc.Start = StartType.Auto;
+        gc.Stop = StopType.SoftwareCommand;
+        gc.Type = SprintGaitType.Gait;
+        gc.ResultType = DataType.Row;
+        gc.StartPosition = StartWhere.OutSideArea;
+        gc.StopPosition = StopWhere.OutSideArea;
+        gc.StartingFoot = Foot.NotDefined;
+
+        string xml = Helper.Serialize<Microgate.Opto.API.Entities.SprintGaitConfig>(gc);
+
+        /*
         sprintGaitConfig =
         "<?xml version=\"1.0\" encoding=\"utf-16\"?>" +
         "<SprintGaitConfig xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">" +
-          "<TestName>GaitTest_" + manager.participantID + "</TestName>" +
+          "<TestName>GaitTest_" + participantID + "</TestName>" +
           "<PersonWeight>0</PersonWeight>" +
           "<PersonFootLength>0</PersonFootLength>" +
           "<PersonFootWidth>0</PersonFootWidth>" +
@@ -247,9 +257,26 @@ public class OptoApiClient : MonoBehaviour
             "<FootFilterAtBeginEnd>false</FootFilterAtBeginEnd>" +
           "</Parameters>" +
         "</SprintGaitConfig>"
-        ;
+        ;*/
+        
+        //send request to OptoApi
+        SendRequest("I" + xml);
+
 
     }//InitializeTest()
+
+
+    public void EndTest()
+    {
+        SendRequest("E");
+
+    }
+
+
+    public void CancelTest()
+    {
+        SendRequest("C");
+    }
 
 
     private bool SendRequest(String command)
@@ -293,7 +320,7 @@ public class OptoApiClient : MonoBehaviour
     }//SendRequest()
 
 
-    private String ReceiveAnswer()
+    public String ReceiveAnswer()
     {
         // Receive a response from the OptoApi service
         String answer = "";
@@ -306,7 +333,7 @@ public class OptoApiClient : MonoBehaviour
             int bytesRec = socket.Receive(bytes);
             answer = Encoding.ASCII.GetString(bytes, 0, bytesRec);
 
-            Debug.Log("Answer from OptoAPI: " + answer);
+            Debug.Log("Answer from OptoAPI: " + ConvertXmlToLslEventMarker(answer));
             optoGaitEvents.Write("Answer from OptoAPI: " + answer);
 
         }
@@ -350,7 +377,7 @@ public class OptoApiClient : MonoBehaviour
 
         }
 
-        Debug.Log("eventMarkerString: " + eventMarkerString);
+        //Debug.Log("eventMarkerString: " + eventMarkerString);
 
         return eventMarkerString;
 
