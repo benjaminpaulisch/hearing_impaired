@@ -29,19 +29,27 @@ public class OptoApiClient : MonoBehaviour
     private Microgate.Opto.API.Entities.SprintGaitConfig gc;
 
     //logic handles
-    private bool socketInitialized = false;
+    private bool socketOpen = false;
+    private bool measurementActive = false;
 
 
     // Start is called before the first frame update
     void Start()
     {
-        
+        GameObject go = GameObject.Find("LSL_MarkerStream_OptoGaitEvents");
+        optoGaitEvents = go.GetComponent<LSLMarkerStream>();
+
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+        if (measurementActive)
+        {
+            //receive data from OptoApi server
+            ReceiveAnswer();
+        }
+            
     }
 
 
@@ -62,32 +70,32 @@ public class OptoApiClient : MonoBehaviour
         try
         {
             // Connect to Remote EndPoint  
-            Debug.Log("Connecting to OptoGait at " + remoteEP.ToString());
-            optoGaitEvents.Write("Connecting to OptoGait at " + remoteEP.ToString());
+            Debug.Log("Connecting to OptoAPI server at " + remoteEP.ToString());
+            optoGaitEvents.Write("Connecting to OptoAPI server at " + remoteEP.ToString());
 
             socket.Connect(remoteEP);
 
             Debug.Log("Connection to OptoAPI server successful");
             optoGaitEvents.Write("Connection to OptoAPI server successful");
 
-            socketInitialized = true;
+            socketOpen = true;
 
         }
         catch (ArgumentNullException ane)
         {
-            Debug.LogWarning("ArgumentNullException : " + ane.ToString());
+            Debug.LogError("ArgumentNullException : " + ane.ToString());
             optoGaitEvents.Write("Error connecting to OptoAPI:\nArgumentNullException: " + ane.ToString());
             returnVal = false;
         }
         catch (SocketException se)
         {
-            Debug.LogWarning("SocketException : " + se.ToString());
+            Debug.LogError("SocketException : " + se.ToString());
             optoGaitEvents.Write("Error connecting to OptoAPI:\nSocketException: " + se.ToString());
             returnVal = false;
         }
         catch (Exception e)
         {
-            Debug.LogWarning("Unexpected exception : " + e.ToString());
+            Debug.LogError("Unexpected exception : " + e.ToString());
             optoGaitEvents.Write("Error connecting to OptoAPI:\nUnexpected exception: " + e.ToString());
             returnVal = false;
         }
@@ -113,22 +121,25 @@ public class OptoApiClient : MonoBehaviour
 
             Debug.Log("Connection closed");
             optoGaitEvents.Write("Connection closed");
+
+            socketOpen = false;
+
         }
         catch (ArgumentNullException ane)
         {
-            Debug.LogWarning("ArgumentNullException : " + ane.ToString());
+            Debug.LogError("ArgumentNullException : " + ane.ToString());
             optoGaitEvents.Write("Error connecting to OptoAPI:\nArgumentNullException: " + ane.ToString());
             returnVal = false;
         }
         catch (SocketException se)
         {
-            Debug.LogWarning("SocketException : " + se.ToString());
+            Debug.LogError("SocketException : " + se.ToString());
             optoGaitEvents.Write("Error connecting to OptoAPI:\nSocketException: " + se.ToString());
             returnVal = false;
         }
         catch (Exception e)
         {
-            Debug.LogWarning("Unexpected exception : " + e.ToString());
+            Debug.LogError("Unexpected exception : " + e.ToString());
             optoGaitEvents.Write("Error connecting to OptoAPI:\nUnexpected exception: " + e.ToString());
             returnVal = false;
         }
@@ -140,6 +151,8 @@ public class OptoApiClient : MonoBehaviour
 
     public bool CheckConnection(String ip, int port)
     {
+        bool returnVal = true;
+
         //Checks if the hardware connection to the OptoGait 
 
         Debug.Log("Checking hardware connection to OptoGait...");
@@ -147,6 +160,7 @@ public class OptoApiClient : MonoBehaviour
 
         SendRequest("K");
 
+        
         String answer = ReceiveAnswer();
 
         if (answer == "")
@@ -154,7 +168,7 @@ public class OptoApiClient : MonoBehaviour
             Debug.LogWarning("No answer from OptoAPI");
             optoGaitEvents.Write("Error: No answer from OptoAPI");
 
-            return false;
+            returnVal = false;
         }
         else
         {
@@ -173,27 +187,37 @@ public class OptoApiClient : MonoBehaviour
                         Debug.Log(node.Name + " to OptoGait: " + node.Value);
                         optoGaitEvents.Write(node.Name + " to OptoGait: " + node.Value);
 
-                        return true;
                     }
                     else if (node.Value == "Fail")
                     {
-                        Debug.LogWarning(node.Name + " to OptoGait: " + node.Value);
+                        Debug.LogError(node.Name + " to OptoGait: " + node.Value);
                         optoGaitEvents.Write("Error: " + node.Name + " to OptoGait: " + node.Value);
 
-                        return false;
+                        returnVal = false;
                     }
+                }
+
+                if (node.Name == "ErrorMessage")
+                {
+                    Debug.LogError("Error: " + node.Name + " from OptoGait: " + node.Value);
+                    optoGaitEvents.Write("Error: " + node.Name + " from OptoGait: " + node.Value);
+
+                    returnVal = false;
                 }
             }
         }
 
-        return false;
+        return returnVal;
 
 
     }//CheckConnection()
 
 
-    public void InitializeTest(String participantID)
+    public bool InitializeTest(String participantID)
     {
+        bool returnVal = true;
+
+        /*
         //Create config
         Microgate.Opto.API.Entities.SprintGaitConfig gaitconfig = new Microgate.Opto.API.Entities.SprintGaitConfig();
 
@@ -208,18 +232,19 @@ public class OptoApiClient : MonoBehaviour
         gc.StopPosition = StopWhere.OutSideArea;
         gc.StartingFoot = Foot.NotDefined;
 
-        string xml = Helper.Serialize<Microgate.Opto.API.Entities.SprintGaitConfig>(gc);
+        string xml = Microgate.Opto.API.Helper.Serialize<Microgate.Opto.API.Entities.SprintGaitConfig>(gc);
+        */
 
         /*
         sprintGaitConfig =
         "<?xml version=\"1.0\" encoding=\"utf-16\"?>" +
-        "<SprintGaitConfig xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">" +
+        "<SprintGaitConfig xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance \" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema \">" +
           "<TestName>GaitTest_" + participantID + "</TestName>" +
           "<PersonWeight>0</PersonWeight>" +
           "<PersonFootLength>0</PersonFootLength>" +
           "<PersonFootWidth>0</PersonFootWidth>" +
           "<GetRawData>true</GetRawData>" +
-          "<AutoStartTest xsi:nil=\"true\" />" +
+          "<AutoStartTest>true</AutoStartTest>" +
           "<StartTestDelay xsi:nil=\"true\" />" +
           "<CancelLastTest xsi:nil=\"true\" />" +
           "<Type>Gait</Type>" +
@@ -257,25 +282,201 @@ public class OptoApiClient : MonoBehaviour
             "<FootFilterAtBeginEnd>false</FootFilterAtBeginEnd>" +
           "</Parameters>" +
         "</SprintGaitConfig>"
-        ;*/
-        
-        //send request to OptoApi
-        SendRequest("I" + xml);
+        ;
+        */
 
+        sprintGaitConfig = new String("");
+
+        /*
+        "<?xml version=\"1.0\" encoding=\"utf-16\"?>" +
+        "<SprintGaitConfig xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance \" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema \">" +
+            "<TestName>My Gait Test</TestName>" +
+            "<PersonWeight>57</PersonWeight>" +
+            "<PersonFootLength>0</PersonFootLength>" +
+            "<PersonFootWidth>0</PersonFootWidth>" +
+            "<GetRawData>true</GetRawData>" +
+            "<AutoStartTest>true</AutoStartTest>" +
+            "<StartTestDelay xsi:nil=\"true\" />" +
+            "<CancelLastTest xsi:nil=\"true\" />" +
+            "<Type>Gait</Type>" +
+            "<ResultType>Row</ResultType>" +
+            "<Start>SoftwareCommand</Start>" +
+            "<StartPosition xsi:nil=\"true\" />" +
+            "<Stop>SoftwareCommand</Stop>" +
+            "<StopPosition>OutSideArea</StopPosition>" +
+            "<StartingFoot>L</StartingFoot>" +
+            "<NumberOfIntermediate>0</NumberOfIntermediate>" +
+            "<NumberOfStep>0</NumberOfStep>" +
+            "<EnableEMGVirtualFootswitch>false</EnableEMGVirtualFootswitch>" +
+            "<Template>None</Template>" +
+        "</SprintGaitConfig>"
+        ;
+        */
+
+        //send request to OptoApi
+        //SendRequest("I" + xml);
+        SendRequest("I" + sprintGaitConfig);
+
+        //check answer
+        String answer = ReceiveAnswer();
+
+        if (answer == "")
+        {
+            Debug.LogWarning("No answer from OptoAPI");
+            optoGaitEvents.Write("Error: No answer from OptoAPI");
+
+            returnVal = false;
+        }
+        else
+        {
+            XElement parsedXmlString = XElement.Parse(answer);
+
+            List<XElement> answerNodes = parsedXmlString.Elements().ToList();
+
+            foreach (XElement node in answerNodes)
+            {
+                //Debug.Log(node.Name + ":" + node.Value);
+
+                if (node.Name == "Status")
+                {
+                    if (node.Value == "Fail")
+                    {
+                        Debug.LogError("Error: " + node.Name + " of OptoGait: " + node.Value);
+                        optoGaitEvents.Write("Error: " + node.Name + " of OptoGait: " + node.Value);
+
+                        returnVal = false;
+                    }
+                }
+
+                if (node.Name == "ErrorMessage")
+                {
+                    Debug.LogError("Error: " + node.Name + " from OptoGait: " + node.Value);
+                    optoGaitEvents.Write("Error: " + node.Name + " from OptoGait: " + node.Value);
+
+                    returnVal = false;
+                }
+            }
+        }
+
+        //activate flag for receiving data from OptoAPI server
+        measurementActive = true;
+
+        return returnVal;
 
     }//InitializeTest()
 
 
-    public void EndTest()
+    public bool EndTest()
     {
+        bool returnVal = true;
+
         SendRequest("E");
+
+        //check answer
+        String answer = ReceiveAnswer();
+
+        if (answer == "")
+        {
+            Debug.LogWarning("No answer from OptoAPI");
+            optoGaitEvents.Write("Error: No answer from OptoAPI");
+
+            returnVal = false;
+        }
+        else
+        {
+            XElement parsedXmlString = XElement.Parse(answer);
+
+            List<XElement> answerNodes = parsedXmlString.Elements().ToList();
+
+            foreach (XElement node in answerNodes)
+            {
+                //Debug.Log(node.Name + ":" + node.Value);
+
+                if (node.Name == "Status")
+                {
+                    if (node.Value == "Fail")
+                    {
+                        Debug.LogError("Error: " + node.Name + " of OptoGait: " + node.Value);
+                        optoGaitEvents.Write("Error: " + node.Name + " of OptoGait: " + node.Value);
+
+                        returnVal = false;
+                    }
+                }
+
+                if (node.Name == "ErrorMessage")
+                {
+                    Debug.LogError("Error: " + node.Name + " from OptoGait: " + node.Value);
+                    optoGaitEvents.Write("Error: " + node.Name + " from OptoGait: " + node.Value);
+
+                    returnVal = false;
+                }
+            }
+        }
+
+        return returnVal;
 
     }
 
 
-    public void CancelTest()
+    public bool CancelTest()
     {
+        bool returnVal = true;
+
         SendRequest("C");
+
+        //check answer
+        String answer = ReceiveAnswer();
+
+        if (answer == "")
+        {
+            Debug.LogWarning("No answer from OptoAPI");
+            optoGaitEvents.Write("Error: No answer from OptoAPI");
+
+            returnVal = false;
+        }
+        else
+        {
+            XElement parsedXmlString = XElement.Parse(answer);
+
+            List<XElement> answerNodes = parsedXmlString.Elements().ToList();
+
+            foreach (XElement node in answerNodes)
+            {
+                //Debug.Log(node.Name + ":" + node.Value);
+
+                if (node.Name == "Status")
+                {
+                    if (node.Value == "Fail")
+                    {
+                        Debug.LogError("Error: " + node.Name + " of OptoGait: " + node.Value);
+                        optoGaitEvents.Write("Error: " + node.Name + " of OptoGait: " + node.Value);
+
+                        returnVal = false;
+                    }
+                }
+
+                if (node.Name == "Cancel")
+                {
+                    if (node.Value == "Fail")
+                    {
+                        Debug.LogError("Error: " + node.Name + " of OptoGait test: " + node.Value);
+                        optoGaitEvents.Write("Error: " + node.Name + " of OptoGait test: " + node.Value);
+
+                        returnVal = false;
+                    }
+                }
+
+                if (node.Name == "ErrorMessage")
+                {
+                    Debug.LogError("Error: " + node.Name + " from OptoGait: " + node.Value);
+                    optoGaitEvents.Write("Error: " + node.Name + " from OptoGait: " + node.Value);
+
+                    returnVal = false;
+                }
+            }
+        }
+
+        return returnVal;
     }
 
 
@@ -298,19 +499,19 @@ public class OptoApiClient : MonoBehaviour
         }
         catch (ArgumentNullException ane)
         {
-            Debug.LogWarning("ArgumentNullException : " + ane.ToString());
+            Debug.LogError("ArgumentNullException : " + ane.ToString());
             optoGaitEvents.Write("Error connecting to OptoAPI:\nArgumentNullException: " + ane.ToString());
             returnVal = false;
         }
         catch (SocketException se)
         {
-            Debug.LogWarning("SocketException : " + se.ToString());
+            Debug.LogError("SocketException : " + se.ToString());
             optoGaitEvents.Write("Error connecting to OptoAPI:\nSocketException: " + se.ToString());
             returnVal = false;
         }
         catch (Exception e)
         {
-            Debug.LogWarning("Unexpected exception : " + e.ToString());
+            Debug.LogError("Unexpected exception : " + e.ToString());
             optoGaitEvents.Write("Error connecting to OptoAPI:\nUnexpected exception: " + e.ToString());
             returnVal = false;
         }
@@ -334,22 +535,22 @@ public class OptoApiClient : MonoBehaviour
             answer = Encoding.ASCII.GetString(bytes, 0, bytesRec);
 
             Debug.Log("Answer from OptoAPI: " + ConvertXmlToLslEventMarker(answer));
-            optoGaitEvents.Write("Answer from OptoAPI: " + answer);
+            optoGaitEvents.Write(ConvertXmlToLslEventMarker(answer));
 
         }
         catch (ArgumentNullException ane)
         {
-            Debug.LogWarning("ArgumentNullException : " + ane.ToString());
+            Debug.LogError("ArgumentNullException : " + ane.ToString());
             optoGaitEvents.Write("Error connecting to OptoAPI:\nArgumentNullException: " + ane.ToString());
         }
         catch (SocketException se)
         {
-            Debug.LogWarning("SocketException : " + se.ToString());
+            Debug.LogError("SocketException : " + se.ToString());
             optoGaitEvents.Write("Error connecting to OptoAPI:\nSocketException: " + se.ToString());
         }
         catch (Exception e)
         {
-            Debug.LogWarning("Unexpected exception : " + e.ToString());
+            Debug.LogError("Unexpected exception : " + e.ToString());
             optoGaitEvents.Write("Error connecting to OptoAPI:\nUnexpected exception: " + e.ToString());
         }
 

@@ -176,7 +176,10 @@ public class ExperimentManager : MonoBehaviour
         conditionSequences[11] = new int[] { 4, 3, 0, 1, 2 };      //Sequence 12
 
         // Finding the game objects:
-        marker = FindObjectOfType<LSLMarkerStream>();
+        //marker = FindObjectOfType<LSLMarkerStream>();
+        GameObject go = GameObject.Find("LSL_MarkerStream_Experiment");
+        marker = go.GetComponent<LSLMarkerStream>();
+
         optoApiClient = FindObjectOfType<OptoApiClient>();
         mainMenuCanvas = GameObject.Find("MainMenuCanvas");
         configurationIncompleteText = GameObject.Find("ConfigurationIncompleteText");
@@ -1224,7 +1227,7 @@ public class ExperimentManager : MonoBehaviour
 
 
         //initialize OptoGait measurement
-        optoApiClient.InitializeTest(participantID);
+        //optoApiClient.InitializeTest(participantID);
 
 
         expInitRun = true;
