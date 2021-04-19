@@ -285,9 +285,7 @@ public class OptoApiClient : MonoBehaviour
         ;
         */
 
-        sprintGaitConfig = new String("");
-
-        /*
+        sprintGaitConfig =
         "<?xml version=\"1.0\" encoding=\"utf-16\"?>" +
         "<SprintGaitConfig xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance \" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema \">" +
             "<TestName>My Gait Test</TestName>" +
@@ -311,7 +309,7 @@ public class OptoApiClient : MonoBehaviour
             "<Template>None</Template>" +
         "</SprintGaitConfig>"
         ;
-        */
+        
 
         //send request to OptoApi
         //SendRequest("I" + xml);

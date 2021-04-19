@@ -11,7 +11,7 @@ public class ExperimentManager : MonoBehaviour
     public float isiDurationVariation = 0.5f;       //0.5s variation (so the ISI duration range is betweeen 0.5s and 1.5s)
     public float stimulusDuration = 0.1f;           //100ms stimulus duration
     public int ledBrightness = 10;                  //should be a value 0-100 (0=off)
-    public int audioVolume = 1;                     //should be a value 0-1
+    public float audioVolume = 1;                   //should be a value 0-1
     public float responseTimeMax = 1.9f;            //1.5s max possible response time
     public bool debugMode = false;
 
@@ -117,6 +117,7 @@ public class ExperimentManager : MonoBehaviour
     private bool cornerFourSet = false;
     private bool gaitPositionsSet = false;
     private bool setGaitCornersActive = false;
+    private bool optoGaitConnected = false;
 
 
     // Experiment logic handler
@@ -265,6 +266,22 @@ public class ExperimentManager : MonoBehaviour
             {
                 case 0: //main menu
                     {
+                        //check if config, calibration and OptoAPI connection have been done
+                        if (debugMode)
+                        {
+                            buttonExpMenu.GetComponent<Button>().interactable = true;
+                        }
+                        else
+                        {
+                            if (configComplete && gaitPositionsSet && optoGaitConnected)
+                            {
+                                buttonExpMenu.GetComponent<Button>().interactable = true;
+                            }
+                            else
+                            {
+                                buttonExpMenu.GetComponent<Button>().interactable = false;
+                            }
+                        }
                         break;
                     }
 
@@ -449,7 +466,7 @@ public class ExperimentManager : MonoBehaviour
         }
         else
         {
-            if (configComplete && gaitPositionsSet)
+            if (configComplete && gaitPositionsSet && optoGaitConnected)
             {
                 buttonExpMenu.GetComponent<Button>().interactable = true;
             }
@@ -2384,6 +2401,8 @@ public class ExperimentManager : MonoBehaviour
             {
                 //connected to OptoGait
                 optoGaitConnectionText.GetComponent<Text>().color = Color.green;
+                optoGaitConnected = true;
+
             }
         }
 
