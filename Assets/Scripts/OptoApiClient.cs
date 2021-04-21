@@ -217,13 +217,17 @@ public class OptoApiClient : MonoBehaviour
     {
         bool returnVal = true;
 
-        /*
+        
         //Create config
         Microgate.Opto.API.Entities.SprintGaitConfig gaitconfig = new Microgate.Opto.API.Entities.SprintGaitConfig();
 
         gc = new Microgate.Opto.API.Entities.SprintGaitConfig();
-        gc.TestName = "GaitTest_" + participantID;
         gc.GetRawData = true;
+        gc.PersonFootLength = 0;
+        gc.PersonFootWidth = 0;
+        gc.PersonWeight = 0;
+        gc.TestName = "GaitTest_" + participantID;
+        gc.AutoStartTest = true;
         gc.Start = StartType.Auto;
         gc.Stop = StopType.SoftwareCommand;
         gc.Type = SprintGaitType.Gait;
@@ -231,9 +235,15 @@ public class OptoApiClient : MonoBehaviour
         gc.StartPosition = StartWhere.OutSideArea;
         gc.StopPosition = StopWhere.OutSideArea;
         gc.StartingFoot = Foot.NotDefined;
+        gc.NumberOfIntermediate = 0;
+        gc.NumberOfStep = 0;
+        gc.EnableEMGVirtualFootswitch = false;
+        gc.Template = SprintGaitTemplate.None;
 
         string xml = Microgate.Opto.API.Helper.Serialize<Microgate.Opto.API.Entities.SprintGaitConfig>(gc);
-        */
+
+        //print(xml);
+        
 
         /*
         sprintGaitConfig =
@@ -245,8 +255,8 @@ public class OptoApiClient : MonoBehaviour
           "<PersonFootWidth>0</PersonFootWidth>" +
           "<GetRawData>true</GetRawData>" +
           "<AutoStartTest>true</AutoStartTest>" +
-          "<StartTestDelay xsi:nil=\"true\" />" +
-          "<CancelLastTest xsi:nil=\"true\" />" +
+          "<StartTestDelay>true</StartTestDelay>" +
+          "<CancelLastTest>false</CancelLastTest>" +
           "<Type>Gait</Type>" +
           "<ResultType>Row</ResultType>" +
           "<Start>SoftwareCommand</Start>" +
@@ -282,24 +292,25 @@ public class OptoApiClient : MonoBehaviour
             "<FootFilterAtBeginEnd>false</FootFilterAtBeginEnd>" +
           "</Parameters>" +
         "</SprintGaitConfig>"
-        ;
-        */
+        ;*/
 
+
+        
         sprintGaitConfig =
-        "<?xml version=\"1.0\" encoding=\"utf-16\"?>" +
-        "<SprintGaitConfig xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance \" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema \">" +
-            "<TestName>My Gait Test</TestName>" +
-            "<PersonWeight>57</PersonWeight>" +
-            "<PersonFootLength>0</PersonFootLength>" +
-            "<PersonFootWidth>0</PersonFootWidth>" +
-            "<GetRawData>true</GetRawData>" +
-            "<AutoStartTest>true</AutoStartTest>" +
-            "<StartTestDelay xsi:nil=\"true\" />" +
-            "<CancelLastTest xsi:nil=\"true\" />" +
+        "<?xml version=\"1.0\" encoding=\"utf-16\"?>" +     //39
+        "<SprintGaitConfig xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">" +   //117
+            "<TestName>My Gait Test</TestName>" +   //33
+            "<PersonWeight>57</PersonWeight>" +     //31
+            "<PersonFootLength>0</PersonFootLength>" +  //38
+            "<PersonFootWidth>0</PersonFootWidth>" +    //36
+            "<GetRawData>true</GetRawData>" +   //29
+            "<AutoStartTest>true</AutoStartTest>" + //35
+            "<StartTestDelay>true</StartTestDelay>" +   //37    = 395
+            "<CancelLastTest>false</CancelLastTest>" +
             "<Type>Gait</Type>" +
             "<ResultType>Row</ResultType>" +
             "<Start>SoftwareCommand</Start>" +
-            "<StartPosition xsi:nil=\"true\" />" +
+            "<StartPosition>OutSideArea</StartPosition>" +
             "<Stop>SoftwareCommand</Stop>" +
             "<StopPosition>OutSideArea</StopPosition>" +
             "<StartingFoot>L</StartingFoot>" +
@@ -310,6 +321,8 @@ public class OptoApiClient : MonoBehaviour
         "</SprintGaitConfig>"
         ;
         
+
+        print(sprintGaitConfig);
 
         //send request to OptoApi
         //SendRequest("I" + xml);

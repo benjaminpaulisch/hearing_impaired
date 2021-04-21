@@ -983,7 +983,7 @@ public class ExperimentManager : MonoBehaviour
 
 
             //initialize OptoGait measurement
-            optoApiClient.InitializeTest(participantID);
+            //optoApiClient.InitializeTest(participantID);
 
         }
         else
@@ -1244,7 +1244,7 @@ public class ExperimentManager : MonoBehaviour
 
 
         //initialize OptoGait measurement
-        //optoApiClient.InitializeTest(participantID);
+        optoApiClient.InitializeTest(participantID);
 
 
         expInitRun = true;
@@ -1326,7 +1326,7 @@ public class ExperimentManager : MonoBehaviour
                     //end OptoGait measurement (not during training)
                     if (!trainingStarted)
                     {
-                        optoApiClient.EndTest();
+                        //optoApiClient.EndTest();
 
                     }
 
@@ -1357,7 +1357,7 @@ public class ExperimentManager : MonoBehaviour
                         //initialize new Optogait measurement for next gait (not during training)
                         if (!trainingStarted)
                         {
-                            optoApiClient.InitializeTest(participantID);
+                            //optoApiClient.InitializeTest(participantID);
 
                         }
                         
@@ -1915,6 +1915,7 @@ public class ExperimentManager : MonoBehaviour
 
     void TriggerAudioStimulus(string side, string pitch)
     {
+        
         float stereoPan = 0;
 
         //triggers an audio stimulus
@@ -1939,6 +1940,7 @@ public class ExperimentManager : MonoBehaviour
             audioSource_high.volume = audioVolume;
             audioSource_low.Play();
         }
+        
 
         //for testing: also send sound command to RasPi
         string[] sample = { "audio;" + side + ";" + pitch + ";" + audioVolume.ToString() + ";" + (stimulusDuration * 1000).ToString() };    //convert s to ms
@@ -2407,6 +2409,23 @@ public class ExperimentManager : MonoBehaviour
         }
 
     }
+
+
+    public void DisconnectOptoGait()
+    {
+        if (optoApiClient.CheckConnection(optoApiHostIP, optoApiHostPort))
+        {
+            //disconnect the OptoGait server
+            if (optoApiClient.CloseSocket())
+            {
+                optoGaitConnectionText.GetComponent<Text>().color = Color.red;
+                optoGaitConnected = false;
+
+            }
+
+        }
+    }
+
 
 
 }//class
