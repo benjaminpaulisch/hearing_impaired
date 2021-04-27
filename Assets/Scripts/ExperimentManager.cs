@@ -1922,6 +1922,7 @@ public class ExperimentManager : MonoBehaviour
         if (side == "left")
         {
             stereoPan = -1;
+            //stereoPan = 1;
         }
         else if (side == "right")
         {
@@ -1937,7 +1938,7 @@ public class ExperimentManager : MonoBehaviour
         else if (pitch == "low")
         {
             audioSource_low.panStereo = stereoPan;
-            audioSource_high.volume = audioVolume;
+            audioSource_low.volume = audioVolume;
             audioSource_low.Play();
         }
         

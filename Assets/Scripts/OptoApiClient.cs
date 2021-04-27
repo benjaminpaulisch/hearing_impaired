@@ -245,7 +245,7 @@ public class OptoApiClient : MonoBehaviour
         //print(xml);
         
 
-        /*
+        
         sprintGaitConfig =
         "<?xml version=\"1.0\" encoding=\"utf-16\"?>" +
         "<SprintGaitConfig xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance \" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema \">" +
@@ -292,10 +292,10 @@ public class OptoApiClient : MonoBehaviour
             "<FootFilterAtBeginEnd>false</FootFilterAtBeginEnd>" +
           "</Parameters>" +
         "</SprintGaitConfig>"
-        ;*/
+        ;
 
 
-        
+        /*
         sprintGaitConfig =
         "<?xml version=\"1.0\" encoding=\"utf-16\"?>" +     //39
         "<SprintGaitConfig xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">" +   //117
@@ -319,7 +319,7 @@ public class OptoApiClient : MonoBehaviour
             "<EnableEMGVirtualFootswitch>false</EnableEMGVirtualFootswitch>" +
             "<Template>None</Template>" +
         "</SprintGaitConfig>"
-        ;
+        ;*/
         
 
         print(sprintGaitConfig);
