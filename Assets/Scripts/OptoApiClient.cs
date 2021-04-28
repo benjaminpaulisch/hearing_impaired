@@ -245,7 +245,7 @@ public class OptoApiClient : MonoBehaviour
         //print(xml);
         
 
-        
+        /*
         sprintGaitConfig =
         "<?xml version=\"1.0\" encoding=\"utf-16\"?>" +
         "<SprintGaitConfig xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance \" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema \">" +
@@ -292,10 +292,10 @@ public class OptoApiClient : MonoBehaviour
             "<FootFilterAtBeginEnd>false</FootFilterAtBeginEnd>" +
           "</Parameters>" +
         "</SprintGaitConfig>"
-        ;
+        ;*/
 
 
-        /*
+        
         sprintGaitConfig =
         "<?xml version=\"1.0\" encoding=\"utf-16\"?>" +     //39
         "<SprintGaitConfig xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">" +   //117
@@ -319,14 +319,42 @@ public class OptoApiClient : MonoBehaviour
             "<EnableEMGVirtualFootswitch>false</EnableEMGVirtualFootswitch>" +
             "<Template>None</Template>" +
         "</SprintGaitConfig>"
-        ;*/
-        
+        ;
+
+
+        //config from OptoGait TestClient source code:
+        string command = "";
+        command += "<?xml version=\"1.0\" encoding=\"UTF-16\"?>";
+        command += "<SprintGaitConfig xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">";
+        command += "<TestName>My Sprint Test</TestName>";
+        command += "<PersonWeight>57</PersonWeight>";
+        command += "<PersonFootLength>0</PersonFootLength>";
+        command += "<PersonFootWidth>0</PersonFootWidth>";
+        command += "<GetRawData>false</GetRawData>";
+        command += "<AutoStartTest xsi:nil=\"true\"/>";
+        command += "<StartTestDelay xsi:nil=\"true\"/>";
+        command += "<CancelLastTest xsi:nil=\"true\"/>";
+        command += "<Type>Sprint</Type>";
+        command += "<ResultType>Row</ResultType>";
+        command += "<Start>SoftwareCommand</Start>";
+        command += "<StartPosition>OutSideArea</StartPosition>";  
+        command += "<Stop>SoftwareCommand</Stop>";             
+        command += "<StopPosition>OutSideArea</StopPosition>";   
+        command += "<StartingFoot>ND</StartingFoot>";
+        command += "<NumberOfIntermediate>2</NumberOfIntermediate>";
+        command += "<NumberOfStep>0</NumberOfStep>";
+        command += "<EnableEMGVirtualFootswitch>false</EnableEMGVirtualFootswitch>";
+        command += "<Template>NormalWalking</Template>";
+        command += "</SprintGaitConfig>";
+
+
 
         print(sprintGaitConfig);
 
         //send request to OptoApi
         //SendRequest("I" + xml);
-        SendRequest("I" + sprintGaitConfig);
+        //SendRequest("I" + sprintGaitConfig);
+        SendRequest("I" + command);
 
         //check answer
         String answer = ReceiveAnswer();
