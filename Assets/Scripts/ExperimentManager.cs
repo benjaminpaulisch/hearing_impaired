@@ -1244,7 +1244,7 @@ public class ExperimentManager : MonoBehaviour
 
 
         //initialize OptoGait measurement
-        optoApiClient.InitializeTest(participantID);
+        //optoApiClient.InitializeTest(participantID);
 
 
         expInitRun = true;
