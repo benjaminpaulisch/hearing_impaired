@@ -232,7 +232,7 @@ public class ExperimentManager : MonoBehaviour
         }
 
         //start lsl stream for sending commands to RasPi (for triggering visual stimuli)
-        visualStimulusStreamInfo = new liblsl.StreamInfo("HearingImpaired_Unity3D_CommandsToRasPi", "markers", 1, 0, liblsl.channel_format_t.cf_string, "unity3dId123354");
+        visualStimulusStreamInfo = new liblsl.StreamInfo("HearingImpaired_Unity3D_CommandsToRasPi", "Markers", 1, 0, liblsl.channel_format_t.cf_string, "unity3dId123354");
         visualStimulusStreamOutlet = new liblsl.StreamOutlet(visualStimulusStreamInfo);
 
         // start the Main Menu:
