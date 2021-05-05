@@ -243,7 +243,37 @@ public class OptoApiClient : MonoBehaviour
         string xml = Microgate.Opto.API.Helper.Serialize<Microgate.Opto.API.Entities.SprintGaitConfig>(gc);
 
         //print(xml);
-        
+
+
+        //Code from Microgate TestClient source code
+        SprintGaitConfig tc = new SprintGaitConfig();
+        tc.TestName = "My Gait Test";
+        tc.GetRawData = true;
+        tc.PersonWeight = 57.0;
+        tc.Type = SprintGaitType.Gait;
+        tc.Start = StartType.SoftwareCommand;
+        tc.StartingFoot = Foot.NotDefined;
+        tc.Stop = StopType.SoftwareCommand;
+        tc.StopPosition = StopWhere.OutSideArea;
+        tc.Template = SprintGaitTemplate.None;
+        tc.ResultType = DataType.Row;
+        tc.AutoStartTest = true;
+        //tc.StartTestDelay = comboBoxStartTestDelay.SelectedIndex;
+        tc.CancelLastTest = false;
+
+        SprintGaitParameter tp = new SprintGaitParameter();
+        tp.EntryPoint = SprintDirection.InterfaceSide;          //??
+        tp.DiscardFirstStep = 0;
+        tp.DiscardLastStep = 0;
+        tp.FootFilterAtBeginEnd = false;
+        //tp.TimeoutFlightTime = 2000;
+        //tp.TimeoutContactTime = 2000;
+
+        tc.Parameters = tp;
+
+        String config = Helper.Serialize<SprintGaitConfig>(tc);
+
+
 
         /*
         sprintGaitConfig =
@@ -295,7 +325,7 @@ public class OptoApiClient : MonoBehaviour
         ;*/
 
 
-        
+
         sprintGaitConfig =
         "<?xml version=\"1.0\" encoding=\"utf-16\"?>" +     //39
         "<SprintGaitConfig xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">" +   //117
@@ -325,6 +355,7 @@ public class OptoApiClient : MonoBehaviour
         //config from OptoGait TestClient source code:
         string command = "";
         command += "<?xml version=\"1.0\" encoding=\"UTF-16\"?>";
+        /*
         command += "<SprintGaitConfig xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">";
         command += "<TestName>My Sprint Test</TestName>";
         command += "<PersonWeight>57</PersonWeight>";
@@ -346,6 +377,52 @@ public class OptoApiClient : MonoBehaviour
         command += "<EnableEMGVirtualFootswitch>false</EnableEMGVirtualFootswitch>";
         command += "<Template>NormalWalking</Template>";
         command += "</SprintGaitConfig>";
+        */
+
+        command += "< SprintGaitConfig xmlns: xsi = \"http://www.w3.org/2001/XMLSchema-instance\" xmlns: xsd = \"http://www.w3.org/2001/XMLSchema\" >";
+        command += "< TestName > My Gait Test</ TestName >";
+        command += "< PersonWeight > 57 </ PersonWeight >";
+        command += "< PersonFootLength > 0 </ PersonFootLength >";
+        command += "< PersonFootWidth > 0 </ PersonFootWidth >";
+        command += "< GetRawData > true </ GetRawData >";
+        command += "< AutoStartTest > true </ AutoStartTest >";
+        command += "< StartTestDelay xsi: nil = \"true\" />";
+        command += "< CancelLastTest xsi: nil = \"true\" />";
+        command += "< Type > Gait </ Type >";
+        command += "< ResultType > Row </ ResultType >";
+        command += "< Start > SoftwareCommand </ Start >";
+        command += "< StartPosition xsi: nil = \"true\" />";
+        command += "< Stop > SoftwareCommand </ Stop >";
+        command += "< StopPosition > OutSideArea </ StopPosition >";
+        command += "< StartingFoot > ND </ StartingFoot >";
+        command += "< NumberOfIntermediate > 0 </ NumberOfIntermediate >";
+        command += "< NumberOfStep > 0 </ NumberOfStep >";
+        command += "< EnableEMGVirtualFootswitch > false </ EnableEMGVirtualFootswitch >";
+        command += "< Template > None </ Template >";
+        command += "< Parameters >";
+        command += "< MinimumContactTime > 10 </ MinimumContactTime >";
+        command += "< MinimumFlightTime > 10 </ MinimumFlightTime >";
+        command += "< MaximumFlightTime > 0 </ MaximumFlightTime >";
+        command += "< TimeoutContactTime xsi: nil = \"true\" />";
+        command += "< TimeoutFlightTime xsi: nil = \"true\" />";
+        command += "< ExternalSignalHoldoff > 500 </ ExternalSignalHoldoff >";
+        command += "< EntryPoint > Automatic </ EntryPoint >";
+        command += "< StepLengthCalculation > Tip2Tip </ StepLengthCalculation >";
+        command += "< MinimumGapFeet > 10 </ MinimumGapFeet >";
+        command += "< MinimumFootLength > 5 </ MinimumFootLength >";
+        command += "< MinimumFootWidth > 3 </ MinimumFootWidth >";
+        command += "< MinimumGapFeetWidth > 3 </ MinimumGapFeetWidth >";
+        command += "< DistanceSplit1 > 0 </ DistanceSplit1 >";
+        command += "< DistanceSplit2 > 0 </ DistanceSplit2 >";
+        command += "< TestTimeout > 3000 </ TestTimeout >";
+        command += "< ReferenceSpeedAtStep3 > 6 </ ReferenceSpeedAtStep3 >";
+        command += "< ReferenceSpeedAtStep6 > 8 </ ReferenceSpeedAtStep6 >";
+        command += "< ReferenceSpeedAtStep9 > 9 </ ReferenceSpeedAtStep9 >";
+        command += "< DiscardFirstStep > 0 </ DiscardFirstStep >";
+        command += "< DiscardLastStep > 0 </ DiscardLastStep >";
+        command += "< FootFilterAtBeginEnd > false </ FootFilterAtBeginEnd >";
+        command += "</ Parameters >";
+        command += "</ SprintGaitConfig >";
 
 
 
@@ -354,6 +431,7 @@ public class OptoApiClient : MonoBehaviour
         //send request to OptoApi
         //SendRequest("I" + xml);
         //SendRequest("I" + sprintGaitConfig);
+        //SendRequest("I" + config);
         SendRequest("I" + command);
 
         //check answer

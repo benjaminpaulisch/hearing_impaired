@@ -118,6 +118,7 @@ public class ExperimentManager : MonoBehaviour
     private bool gaitPositionsSet = false;
     private bool setGaitCornersActive = false;
     private bool optoGaitConnected = false;
+    private bool responseMarkerSent = false;
 
 
     // Experiment logic handler
@@ -1638,12 +1639,16 @@ public class ExperimentManager : MonoBehaviour
                 //calculate if response is correct or not? ToDo
 
                 //write lsl marker
-                tempMarkerText = 
-                    "response:" + responseSide + ";" +
-                    "duration:" + currentResponseTime;
-                marker.Write(tempMarkerText);
-                Debug.Log(tempMarkerText);
+                if (!responseMarkerSent)
+                {
+                    tempMarkerText =
+                        "response:" + responseSide + ";" +
+                        "duration:" + currentResponseTime;
+                    marker.Write(tempMarkerText);
+                    Debug.Log(tempMarkerText);
 
+                    responseMarkerSent = true;
+                }
 
                 //go to next trial
                 //in walking conditions check trial in gait counter
@@ -1797,6 +1802,7 @@ public class ExperimentManager : MonoBehaviour
         stimulusShown = false;
         responseSide = "";
         responseTimeOver = false;
+        responseMarkerSent = false;
 
         //increment trial counter
         trialCounter += 1;
