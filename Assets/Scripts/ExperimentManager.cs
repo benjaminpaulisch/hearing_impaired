@@ -1921,7 +1921,8 @@ public class ExperimentManager : MonoBehaviour
 
     void TriggerAudioStimulus(string side, string pitch)
     {
-        
+        /*
+        //play audio stimuli in unity:
         float stereoPan = 0;
 
         //triggers an audio stimulus
@@ -1947,9 +1948,9 @@ public class ExperimentManager : MonoBehaviour
             audioSource_low.volume = audioVolume;
             audioSource_low.Play();
         }
-        
+        */
 
-        //for testing: also send sound command to RasPi
+        //play audio in raspberry: send sound command to RasPi
         string[] sample = { "audio;" + side + ";" + pitch + ";" + audioVolume.ToString() + ";" + (stimulusDuration * 1000).ToString() };    //convert s to ms
         //ToDo: try catch block!
         visualStimulusStreamOutlet.push_sample(sample);
