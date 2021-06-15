@@ -29,9 +29,11 @@ public class ExperimentManager : MonoBehaviour
 
     [Header("Misc")]
     public LSLMarkerStream marker;
+    /*
     public OptoApiClient optoApiClient;
     public string optoApiHostIP = "127.0.0.1";
     public int optoApiHostPort = 31967;
+    */
 
     //##########
 
@@ -72,8 +74,8 @@ public class ExperimentManager : MonoBehaviour
     private string tempMarkerText;
 
     //lsl streams for visual stimulus and answeres from raspi
-    private liblsl.StreamInfo visualStimulusStreamInfo;
-    private liblsl.StreamOutlet visualStimulusStreamOutlet;
+    private liblsl.StreamInfo rasPiCommandStreamInfo;
+    private liblsl.StreamOutlet rasPiCOmmandStreamOutlet;
     private liblsl.StreamInlet rasPiStreamInlet;
     private string rasPiConnected = "RasPi connected";
     private string rasPiNotConnected = "RasPi not connected";
@@ -117,7 +119,7 @@ public class ExperimentManager : MonoBehaviour
     private bool cornerFourSet = false;
     private bool gaitPositionsSet = false;
     private bool setGaitCornersActive = false;
-    private bool optoGaitConnected = false;
+    //private bool optoGaitConnected = false;
     private bool responseMarkerSent = false;
 
 
@@ -182,7 +184,7 @@ public class ExperimentManager : MonoBehaviour
         GameObject go = GameObject.Find("LSL_MarkerStream_Experiment");
         marker = go.GetComponent<LSLMarkerStream>();
 
-        optoApiClient = FindObjectOfType<OptoApiClient>();
+        //optoApiClient = FindObjectOfType<OptoApiClient>();
         mainMenuCanvas = GameObject.Find("MainMenuCanvas");
         configurationIncompleteText = GameObject.Find("ConfigurationIncompleteText");
         calibrationIncompleteText = GameObject.Find("CalibrationIncompleteText");
@@ -233,8 +235,8 @@ public class ExperimentManager : MonoBehaviour
         }
 
         //start lsl stream for sending commands to RasPi (for triggering visual stimuli)
-        visualStimulusStreamInfo = new liblsl.StreamInfo("HearingImpaired_Unity3D_CommandsToRasPi", "Markers", 1, 0, liblsl.channel_format_t.cf_string, "unity3dId123354");
-        visualStimulusStreamOutlet = new liblsl.StreamOutlet(visualStimulusStreamInfo);
+        rasPiCommandStreamInfo = new liblsl.StreamInfo("HearingImpaired_Unity3D_CommandsToRasPi", "Markers", 1, 0, liblsl.channel_format_t.cf_string, "unity3dId123354");
+        rasPiCOmmandStreamOutlet = new liblsl.StreamOutlet(rasPiCommandStreamInfo);
 
         // start the Main Menu:
         StartMainMenu();
@@ -274,7 +276,8 @@ public class ExperimentManager : MonoBehaviour
                         }
                         else
                         {
-                            if (configComplete && gaitPositionsSet && optoGaitConnected)
+                            //if (configComplete && gaitPositionsSet && optoGaitConnected)
+                            if (configComplete && gaitPositionsSet)
                             {
                                 buttonExpMenu.GetComponent<Button>().interactable = true;
                             }
@@ -468,7 +471,8 @@ public class ExperimentManager : MonoBehaviour
         }
         else
         {
-            if (configComplete && gaitPositionsSet && optoGaitConnected)
+            //if (configComplete && gaitPositionsSet && optoGaitConnected)
+            if (configComplete && gaitPositionsSet)
             {
                 buttonExpMenu.GetComponent<Button>().interactable = true;
             }
@@ -1908,7 +1912,7 @@ public class ExperimentManager : MonoBehaviour
         //triggers a visual stimulus by sending a command to the Raspberry PI
         string[] sample = { "led;" + side + ";" + color + ";" + ledBrightness.ToString() + ";" + (stimulusDuration * 1000).ToString() + ";" + trialCounter };    //convert s to ms
         //ToDo: try catch block!
-        visualStimulusStreamOutlet.push_sample(sample);
+        rasPiCOmmandStreamOutlet.push_sample(sample);
 
         //send lsl marker
         tempMarkerText =
@@ -1956,7 +1960,7 @@ public class ExperimentManager : MonoBehaviour
         //play audio in raspberry: send sound command to RasPi
         string[] sample = { "audio;" + side + ";" + pitch + ";" + audioVolume.ToString() + ";" + (stimulusDuration * 1000).ToString() + ";" + trialCounter };    //convert s to ms
         //ToDo: try catch block!
-        visualStimulusStreamOutlet.push_sample(sample);
+        rasPiCOmmandStreamOutlet.push_sample(sample);
 
         //send lsl marker
         tempMarkerText =
@@ -2336,7 +2340,7 @@ public class ExperimentManager : MonoBehaviour
             //if RasPi stream found -> check if RasPi answers to connection check
             print("Sending test command to RasPi...");
             string[] sample = {"test connection"};
-            visualStimulusStreamOutlet.push_sample(sample);
+            rasPiCOmmandStreamOutlet.push_sample(sample);
 
             print("Waiting for answer from RasPi...");
             string[] sampleReceived = new string[1];
@@ -2403,7 +2407,7 @@ public class ExperimentManager : MonoBehaviour
 
     }
 
-
+    /*
     public void ConnectOptoGait()
     {
         optoGaitConnectionText.GetComponent<Text>().color = Color.red;
@@ -2436,7 +2440,7 @@ public class ExperimentManager : MonoBehaviour
 
         }
     }
-
+    */
 
 
 }//class
