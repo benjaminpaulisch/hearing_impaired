@@ -1906,7 +1906,7 @@ public class ExperimentManager : MonoBehaviour
     void TriggerVisualStimulus(string side, string color)
     {
         //triggers a visual stimulus by sending a command to the Raspberry PI
-        string[] sample = {"led;" + side + ";" + color + ";" + ledBrightness.ToString() + ";" + (stimulusDuration*1000).ToString()};    //convert s to ms
+        string[] sample = { "led;" + side + ";" + color + ";" + ledBrightness.ToString() + ";" + (stimulusDuration * 1000).ToString() + ";" + trialCounter };    //convert s to ms
         //ToDo: try catch block!
         visualStimulusStreamOutlet.push_sample(sample);
 
@@ -1954,7 +1954,7 @@ public class ExperimentManager : MonoBehaviour
         */
 
         //play audio in raspberry: send sound command to RasPi
-        string[] sample = { "audio;" + side + ";" + pitch + ";" + audioVolume.ToString() + ";" + (stimulusDuration * 1000).ToString() };    //convert s to ms
+        string[] sample = { "audio;" + side + ";" + pitch + ";" + audioVolume.ToString() + ";" + (stimulusDuration * 1000).ToString() + ";" + trialCounter };    //convert s to ms
         //ToDo: try catch block!
         visualStimulusStreamOutlet.push_sample(sample);
 
