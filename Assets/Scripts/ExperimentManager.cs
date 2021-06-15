@@ -56,7 +56,7 @@ public class ExperimentManager : MonoBehaviour
     private Vector3 gaitCornerPositionTree;
     private Vector3 gaitCornerPositionFour;
     private Vector3[] corners = new Vector3[4];     //used to store the 4 corner positions of the OptoGait you can put in in the calibration menu
-    private int controllerInsideGaitCounter = 0;              //used to store the amount of controllers inside OptoGait object collider
+    private int triggerInsideGaitCounter = 0;              //used to store the amount of controllers inside OptoGait object collider
     private int cornerCounter = 1;
 
     private float currentTime = 0;                  //current time value during a trial
@@ -341,8 +341,8 @@ public class ExperimentManager : MonoBehaviour
 
                             experimentStarted = false;
 
-                            //go to exp menu
-                            StartExpMenu();
+                            //go to exp block menu
+                            StartExpBlockMenu();
                         }
                         //Initialize experiment
                         else if (!expInitRun)
@@ -448,6 +448,7 @@ public class ExperimentManager : MonoBehaviour
     public void StartMainMenu()
     {
         //This method is used for starting the main menu.
+        marker.Write("Starting Main Menu");
         Debug.Log("Starting Main Menu");
         programStatus = 0;
 
@@ -502,6 +503,7 @@ public class ExperimentManager : MonoBehaviour
     public void StartExpMenu()
     {
         //This method is used for starting the experiment menu.
+        marker.Write("Starting Experiment Menu");
         Debug.Log("Starting Experiment Menu");
         programStatus = 3;
 
@@ -525,6 +527,7 @@ public class ExperimentManager : MonoBehaviour
     public void StartExpBlockMenu()
     {
         //This method is used for starting the experiment menu.
+        marker.Write("Starting Experiment Block Menu");
         Debug.Log("Starting Experiment Block Menu");
         programStatus = 3;
 
@@ -1162,7 +1165,7 @@ public class ExperimentManager : MonoBehaviour
 
         //write experiment start marker
         tempMarkerText =
-            "experimentBlock:start;" +
+            "training:start;" +
             "condition:" + conditions[currentConditionNo] + ";" +
             "runNo:" + currentConditionCounter.ToString() + ";" +
             "gaitsTotal:" + gaitPassesTraining + ";" +
@@ -1298,7 +1301,7 @@ public class ExperimentManager : MonoBehaviour
         if ((currentConditionNo == 2 || currentConditionNo == 4 || currentConditionNo == 7 || currentConditionNo == 8) && !experimentEnd) //added trainings
         {
             //check if participant is inside the OptoGait
-            //if (controllerInsideGaitCounter == 2)
+            //if (triggerInsideGaitCounter == 2)
             if (insideGait)
             {
                 //check if it's a new inside gait
@@ -2214,15 +2217,15 @@ public class ExperimentManager : MonoBehaviour
 
     public void IncrementInsideGaitCounter()
     {
-        controllerInsideGaitCounter += 1;
+        triggerInsideGaitCounter += 1;
 
         //lsl marker
-        marker.Write("foot inside gait:" + controllerInsideGaitCounter.ToString());
-        print("foot inside gait: " + controllerInsideGaitCounter.ToString());
+        marker.Write("trigger inside gait:" + triggerInsideGaitCounter.ToString());
+        print("trigger inside gait: " + triggerInsideGaitCounter.ToString());
 
         //check if new gait pass:
-        //if (controllerInsideGaitCounter == 2)
-        if (controllerInsideGaitCounter == 1)   //the first foot
+        //if (triggerInsideGaitCounter == 2)
+        if (triggerInsideGaitCounter == 1)   //only torso object needed
         {
             //set insideGait flag
             insideGait = true;
@@ -2249,9 +2252,9 @@ public class ExperimentManager : MonoBehaviour
 
     public void DecrementInsideGaitCounter()
     {
-        controllerInsideGaitCounter -= 1;
+        triggerInsideGaitCounter -= 1;
 
-        if(controllerInsideGaitCounter == 0)
+        if(triggerInsideGaitCounter == 0)
         {
             //set insideGait flag
             insideGait = false;
@@ -2261,8 +2264,8 @@ public class ExperimentManager : MonoBehaviour
         }
 
         //lsl marker
-        marker.Write("controller inside Gait:" + controllerInsideGaitCounter.ToString());
-        print("controller inside gait: " + controllerInsideGaitCounter.ToString());
+        marker.Write("trigger inside Gait:" + triggerInsideGaitCounter.ToString());
+        print("trigger inside gait: " + triggerInsideGaitCounter.ToString());
 
     }
 
