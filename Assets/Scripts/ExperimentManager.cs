@@ -190,8 +190,8 @@ public class ExperimentManager : MonoBehaviour
         calibrationIncompleteText = GameObject.Find("CalibrationIncompleteText");
         buttonSetGaitCorners = GameObject.Find("ButtonSetGaitCorners");
         buttonCreateOptoGaitCube = GameObject.Find("ButtonCreateOptoGaitCube");
-        buttonConnectRasPi = GameObject.Find("ButtonConnectRasPi");
-        rasPiNotConnectedText = GameObject.Find("RasPiNotConnectedText");
+        //buttonConnectRasPi = GameObject.Find("ButtonConnectRasPi");
+        //rasPiNotConnectedText = GameObject.Find("RasPiNotConnectedText");
         buttonExpMenu = GameObject.Find("ButtonExpMenu");
         //buttonExpSequence = GameObject.Find("ButtonExpSequence");
         expMenuCanvas = GameObject.Find("ExpMenuCanvas");
@@ -222,7 +222,7 @@ public class ExperimentManager : MonoBehaviour
         controllerLeft = GameObject.Find("Controller (left)");
         controllerRight = GameObject.Find("Controller (right)");
         optoGait = GameObject.Find("OptoGait");
-        optoGaitConnectionText = GameObject.Find("OptoGaitConnectionText");
+        //optoGaitConnectionText = GameObject.Find("OptoGaitConnectionText");
         //inputSequence = GameObject.Find("DropdownExpSequence");
 
         if (!debugMode)
@@ -2324,7 +2324,7 @@ public class ExperimentManager : MonoBehaviour
         }
     }
 
-
+    /*
     public void ConnectRasPi()
     {
         //disable button
@@ -2391,7 +2391,7 @@ public class ExperimentManager : MonoBehaviour
         //enable button
         buttonConnectRasPi.GetComponent<Button>().interactable = true;
 
-    }
+    }*/
 
     /*
     public void CheckSequenceInput()
