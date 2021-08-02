@@ -75,7 +75,7 @@ public class ExperimentManager : MonoBehaviour
 
     //lsl streams for visual stimulus and answeres from raspi
     private liblsl.StreamInfo rasPiCommandStreamInfo;
-    private liblsl.StreamOutlet rasPiCOmmandStreamOutlet;
+    private liblsl.StreamOutlet rasPiCommandStreamOutlet;
     private liblsl.StreamInlet rasPiStreamInlet;
     private string rasPiConnected = "RasPi connected";
     private string rasPiNotConnected = "RasPi not connected";
@@ -147,7 +147,7 @@ public class ExperimentManager : MonoBehaviour
 
 
     // Gameobject handles
-    private GameObject mainMenuCanvas, configMenuCanvas, calibrationMenuCanvas, desktopInfoCanvas, expMenuCanvas, expConditionMenuCanvas,
+    private GameObject mainMenuCanvas, configMenuCanvas, calibrationMenuCanvas, desktopInfoCanvas, expMenuCanvas, expConditionMenuCanvas, audioTestCanvas,
         buttonExpMenu, buttonConnectRasPi, buttonCreateOptoGaitCube, buttonSetGaitCorners, buttonExpSequence, //buttonTraining, buttonBaselineWalking, buttonBaselineSitting, buttonSittingVisual, buttonSittingAudio, buttonWalkingST, buttonWalkingVisual, buttonWalkingAudio,
         inputParticipantID, inputParticipantAge, inputParticipantGroup, inputParticipantSex, inputSequence,
         configurationIncompleteText, calibrationIncompleteText, rasPiNotConnectedText, textCondition, textConditionRunNo, textTrialNo, textTrialInGaitNo,  textGaitPassNo, textTime,
@@ -192,6 +192,7 @@ public class ExperimentManager : MonoBehaviour
         buttonCreateOptoGaitCube = GameObject.Find("ButtonCreateOptoGaitCube");
         //buttonConnectRasPi = GameObject.Find("ButtonConnectRasPi");
         //rasPiNotConnectedText = GameObject.Find("RasPiNotConnectedText");
+        audioTestCanvas = GameObject.Find("AudioTestCanvas");
         buttonExpMenu = GameObject.Find("ButtonExpMenu");
         //buttonExpSequence = GameObject.Find("ButtonExpSequence");
         expMenuCanvas = GameObject.Find("ExpMenuCanvas");
@@ -236,7 +237,7 @@ public class ExperimentManager : MonoBehaviour
 
         //start lsl stream for sending commands to RasPi (for triggering visual stimuli)
         rasPiCommandStreamInfo = new liblsl.StreamInfo("HearingImpaired_Unity3D_CommandsToRasPi", "Markers", 1, 0, liblsl.channel_format_t.cf_string, "unity3dId123354");
-        rasPiCOmmandStreamOutlet = new liblsl.StreamOutlet(rasPiCommandStreamInfo);
+        rasPiCommandStreamOutlet = new liblsl.StreamOutlet(rasPiCommandStreamInfo);
 
         // start the Main Menu:
         StartMainMenu();
@@ -296,11 +297,6 @@ public class ExperimentManager : MonoBehaviour
 
                 case 2: //calibration
                     {
-                        if (setGaitCornersActive)
-                        {
-
-                        }
-
                         break;
                     }
 
@@ -457,6 +453,7 @@ public class ExperimentManager : MonoBehaviour
 
         //activate/deactivate GameObjects
         mainMenuCanvas.SetActive(true);
+        audioTestCanvas.SetActive(false);
         expMenuCanvas.SetActive(false);
         expConditionMenuCanvas.SetActive(false);
         configMenuCanvas.SetActive(false);
@@ -504,6 +501,29 @@ public class ExperimentManager : MonoBehaviour
     }//StartMainMenu()
 
 
+    public void StartAudioTestMenu()
+    {
+        //This method is used for starting the experiment menu.
+        marker.Write("Starting Audiotest Menu");
+        Debug.Log("Starting Audiotest Menu");
+        programStatus = 2;
+
+        expInitRun = false;
+        baselineInitRun = false;
+        trainingInitRun = false;
+
+        //activate/deactivate GameObjects
+        mainMenuCanvas.SetActive(false);
+        audioTestCanvas.SetActive(true);
+        expMenuCanvas.SetActive(false);
+        expConditionMenuCanvas.SetActive(false);
+        configMenuCanvas.SetActive(false);
+        calibrationMenuCanvas.SetActive(false);
+        desktopInfoCanvas.SetActive(false);
+
+    }
+
+
     public void StartExpMenu()
     {
         //This method is used for starting the experiment menu.
@@ -517,6 +537,7 @@ public class ExperimentManager : MonoBehaviour
 
         //activate/deactivate GameObjects
         mainMenuCanvas.SetActive(false);
+        audioTestCanvas.SetActive(false);
         expMenuCanvas.SetActive(true);
         expConditionMenuCanvas.SetActive(false);
         configMenuCanvas.SetActive(false);
@@ -541,6 +562,7 @@ public class ExperimentManager : MonoBehaviour
 
         //activate/deactivate GameObjects
         mainMenuCanvas.SetActive(false);
+        audioTestCanvas.SetActive(false);
         expMenuCanvas.SetActive(false);
         expConditionMenuCanvas.SetActive(true);
         configMenuCanvas.SetActive(false);
@@ -558,6 +580,7 @@ public class ExperimentManager : MonoBehaviour
 
         //activate/deactivate GameObjects
         mainMenuCanvas.SetActive(false);
+        audioTestCanvas.SetActive(false);
         expMenuCanvas.SetActive(false);
         expConditionMenuCanvas.SetActive(false);
         configMenuCanvas.SetActive(true);
@@ -654,6 +677,7 @@ public class ExperimentManager : MonoBehaviour
 
         //activate/deactivate GameObjects
         mainMenuCanvas.SetActive(false);
+        audioTestCanvas.SetActive(false);
         expMenuCanvas.SetActive(false);
         expConditionMenuCanvas.SetActive(false);
         configMenuCanvas.SetActive(false);
@@ -690,6 +714,7 @@ public class ExperimentManager : MonoBehaviour
 
         //activate/deactivate GameObjects
         mainMenuCanvas.SetActive(false);
+        audioTestCanvas.SetActive(false);
         expMenuCanvas.SetActive(false);
         expConditionMenuCanvas.SetActive(false);
         configMenuCanvas.SetActive(false);
@@ -711,6 +736,7 @@ public class ExperimentManager : MonoBehaviour
 
         //activate/deactivate GameObjects
         mainMenuCanvas.SetActive(false);
+        audioTestCanvas.SetActive(false);
         expMenuCanvas.SetActive(false);
         expConditionMenuCanvas.SetActive(false);
         configMenuCanvas.SetActive(false);
@@ -731,6 +757,7 @@ public class ExperimentManager : MonoBehaviour
 
         //activate/deactivate GameObjects
         mainMenuCanvas.SetActive(false);
+        audioTestCanvas.SetActive(false);
         expMenuCanvas.SetActive(false);
         expConditionMenuCanvas.SetActive(false);
         configMenuCanvas.SetActive(false);
@@ -1913,7 +1940,7 @@ public class ExperimentManager : MonoBehaviour
         //triggers a visual stimulus by sending a command to the Raspberry PI
         string[] sample = { "led;" + side + ";" + color + ";" + ledBrightness.ToString() + ";" + (stimulusDuration * 1000).ToString() + ";" + trialCounter };    //convert s to ms
         //ToDo: try catch block!
-        rasPiCOmmandStreamOutlet.push_sample(sample);
+        rasPiCommandStreamOutlet.push_sample(sample);
 
         //send lsl marker
         tempMarkerText =
@@ -1961,7 +1988,7 @@ public class ExperimentManager : MonoBehaviour
         //play audio in raspberry: send sound command to RasPi
         string[] sample = { "audio;" + side + ";" + pitch + ";" + audioVolume.ToString() + ";" + (stimulusDuration * 1000).ToString() + ";" + trialCounter };    //convert s to ms
         //ToDo: try catch block!
-        rasPiCOmmandStreamOutlet.push_sample(sample);
+        rasPiCommandStreamOutlet.push_sample(sample);
 
         //send lsl marker
         tempMarkerText =
@@ -1974,6 +2001,26 @@ public class ExperimentManager : MonoBehaviour
 
     }
 
+
+    public void testAudio(string pitch)
+    {
+        //this is the method for the play sound buttons in the Audiotest Menu
+
+        Debug.Log("Testing audio: " + pitch);
+        marker.Write("Testing audio: " + pitch);
+
+        //pitch should be "high" or "low"
+        if (pitch == "high")
+        {
+            TriggerAudioStimulus("both", pitch);
+        }
+        else if (pitch == "low")
+        {
+            TriggerAudioStimulus("both", pitch);
+        }
+
+        
+    }
 
 
     //misc methods
@@ -2341,7 +2388,7 @@ public class ExperimentManager : MonoBehaviour
             //if RasPi stream found -> check if RasPi answers to connection check
             print("Sending test command to RasPi...");
             string[] sample = {"test connection"};
-            rasPiCOmmandStreamOutlet.push_sample(sample);
+            rasPiCommandStreamOutlet.push_sample(sample);
 
             print("Waiting for answer from RasPi...");
             string[] sampleReceived = new string[1];
