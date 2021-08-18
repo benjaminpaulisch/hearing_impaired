@@ -147,7 +147,7 @@ public class ExperimentManager : MonoBehaviour
 
 
     // Gameobject handles
-    private GameObject mainMenuCanvas, configMenuCanvas, calibrationMenuCanvas, desktopInfoCanvas, expMenuCanvas, expConditionMenuCanvas, audioTestCanvas,
+    private GameObject mainMenuCanvas, configMenuCanvas, calibrationMenuCanvas, desktopInfoCanvas, expMenuCanvas, expConditionMenuCanvas, //audioTestCanvas,
         buttonExpMenu, buttonConnectRasPi, buttonCreateOptoGaitCube, buttonSetGaitCorners, buttonExpSequence, //buttonTraining, buttonBaselineWalking, buttonBaselineSitting, buttonSittingVisual, buttonSittingAudio, buttonWalkingST, buttonWalkingVisual, buttonWalkingAudio,
         inputParticipantID, inputParticipantAge, inputParticipantGroup, inputParticipantSex, inputSequence,
         configurationIncompleteText, calibrationIncompleteText, rasPiNotConnectedText, textCondition, textConditionRunNo, textTrialNo, textTrialInGaitNo,  textGaitPassNo, textTime,
@@ -192,7 +192,7 @@ public class ExperimentManager : MonoBehaviour
         buttonCreateOptoGaitCube = GameObject.Find("ButtonCreateOptoGaitCube");
         //buttonConnectRasPi = GameObject.Find("ButtonConnectRasPi");
         //rasPiNotConnectedText = GameObject.Find("RasPiNotConnectedText");
-        audioTestCanvas = GameObject.Find("AudioTestCanvas");
+        //audioTestCanvas = GameObject.Find("AudioTestCanvas");
         buttonExpMenu = GameObject.Find("ButtonExpMenu");
         //buttonExpSequence = GameObject.Find("ButtonExpSequence");
         expMenuCanvas = GameObject.Find("ExpMenuCanvas");
@@ -453,7 +453,7 @@ public class ExperimentManager : MonoBehaviour
 
         //activate/deactivate GameObjects
         mainMenuCanvas.SetActive(true);
-        audioTestCanvas.SetActive(false);
+        //audioTestCanvas.SetActive(false);
         expMenuCanvas.SetActive(false);
         expConditionMenuCanvas.SetActive(false);
         configMenuCanvas.SetActive(false);
@@ -501,6 +501,7 @@ public class ExperimentManager : MonoBehaviour
     }//StartMainMenu()
 
 
+    /*
     public void StartAudioTestMenu()
     {
         //This method is used for starting the experiment menu.
@@ -521,7 +522,7 @@ public class ExperimentManager : MonoBehaviour
         calibrationMenuCanvas.SetActive(false);
         desktopInfoCanvas.SetActive(false);
 
-    }
+    }*/
 
 
     public void StartExpMenu()
@@ -537,7 +538,7 @@ public class ExperimentManager : MonoBehaviour
 
         //activate/deactivate GameObjects
         mainMenuCanvas.SetActive(false);
-        audioTestCanvas.SetActive(false);
+        //audioTestCanvas.SetActive(false);
         expMenuCanvas.SetActive(true);
         expConditionMenuCanvas.SetActive(false);
         configMenuCanvas.SetActive(false);
@@ -562,7 +563,7 @@ public class ExperimentManager : MonoBehaviour
 
         //activate/deactivate GameObjects
         mainMenuCanvas.SetActive(false);
-        audioTestCanvas.SetActive(false);
+        //audioTestCanvas.SetActive(false);
         expMenuCanvas.SetActive(false);
         expConditionMenuCanvas.SetActive(true);
         configMenuCanvas.SetActive(false);
@@ -580,7 +581,7 @@ public class ExperimentManager : MonoBehaviour
 
         //activate/deactivate GameObjects
         mainMenuCanvas.SetActive(false);
-        audioTestCanvas.SetActive(false);
+        //audioTestCanvas.SetActive(false);
         expMenuCanvas.SetActive(false);
         expConditionMenuCanvas.SetActive(false);
         configMenuCanvas.SetActive(true);
@@ -677,7 +678,7 @@ public class ExperimentManager : MonoBehaviour
 
         //activate/deactivate GameObjects
         mainMenuCanvas.SetActive(false);
-        audioTestCanvas.SetActive(false);
+        //audioTestCanvas.SetActive(false);
         expMenuCanvas.SetActive(false);
         expConditionMenuCanvas.SetActive(false);
         configMenuCanvas.SetActive(false);
@@ -715,7 +716,7 @@ public class ExperimentManager : MonoBehaviour
 
         //activate/deactivate GameObjects
         mainMenuCanvas.SetActive(false);
-        audioTestCanvas.SetActive(false);
+        //audioTestCanvas.SetActive(false);
         expMenuCanvas.SetActive(false);
         expConditionMenuCanvas.SetActive(false);
         configMenuCanvas.SetActive(false);
@@ -737,7 +738,7 @@ public class ExperimentManager : MonoBehaviour
 
         //activate/deactivate GameObjects
         mainMenuCanvas.SetActive(false);
-        audioTestCanvas.SetActive(false);
+        //audioTestCanvas.SetActive(false);
         expMenuCanvas.SetActive(false);
         expConditionMenuCanvas.SetActive(false);
         configMenuCanvas.SetActive(false);
@@ -758,7 +759,7 @@ public class ExperimentManager : MonoBehaviour
 
         //activate/deactivate GameObjects
         mainMenuCanvas.SetActive(false);
-        audioTestCanvas.SetActive(false);
+        //audioTestCanvas.SetActive(false);
         expMenuCanvas.SetActive(false);
         expConditionMenuCanvas.SetActive(false);
         configMenuCanvas.SetActive(false);
