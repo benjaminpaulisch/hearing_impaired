@@ -154,7 +154,7 @@ public class ExperimentManager : MonoBehaviour
         optoGait, optoGaitConnectionText
         ;
 
-    public AudioSource audioSource_high, audioSource_low;
+    public AudioSource audioSource_high, audioSource_low, audioSource_baselineEnd, audioSource_conditionEnd, audioSource_trainingEnd;
 
     public GameObject controllerLeft, controllerRight;
 
@@ -405,6 +405,11 @@ public class ExperimentManager : MonoBehaviour
                                     //end of baseline
                                     marker.Write("baseline:end");
                                     print("baseline:end");
+
+                                    //play audio
+                                    audioSource_baselineEnd.Play();
+                                    //play audio on RasPi
+                                    TriggerAudioStimulus("both", "baseline");
 
                                     //go to exp menu
                                     StartExpMenu();
@@ -1528,11 +1533,23 @@ public class ExperimentManager : MonoBehaviour
             {
                 marker.Write("training:end");
                 Debug.Log("training:end");
+
+                //play audio
+                audioSource_trainingEnd.Play();
+                //play audio on RasPi
+                TriggerAudioStimulus("both", "training");
+
             }
             else
             {
                 marker.Write("experimentBlock:end");
                 Debug.Log("experimentBlock:end");
+
+                //play audio
+                audioSource_conditionEnd.Play();
+                //play audio on RasPi
+                TriggerAudioStimulus("both", "experiment");
+
             }
 
             //activate experiment end text
