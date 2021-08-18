@@ -709,6 +709,7 @@ public class ExperimentManager : MonoBehaviour
         marker.Write("Main menu: Start " + conditions[conditionNo] + " button pressed");
         Debug.Log("Starting " + conditions[conditionNo]);
         programStatus = 4;
+        trainingStarted = true;
 
         currentConditionNo = conditionNo;
 
@@ -1547,6 +1548,8 @@ public class ExperimentManager : MonoBehaviour
             {
                 //go to exp menu
                 StartExpMenu();
+
+                trainingStarted = false;
             }
             else
             {
