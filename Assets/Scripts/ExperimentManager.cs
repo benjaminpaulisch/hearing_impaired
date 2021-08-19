@@ -5,16 +5,21 @@ using LSL;
 
 public class ExperimentManager : MonoBehaviour
 {
+    public enum ledColor { yellow, blue, cyan, purple }
+    private string[] ledColors = {"yellow", "blue", "cyan", "purple" };
+
     //##### Inspector Interface #####
     [Header("General Config")]
     public float isiDurationAvg = 1;                //1s ISI duration on average
     public float isiDurationVariation = 0.5f;       //0.5s variation (so the ISI duration range is betweeen 0.5s and 1.5s)
     public float stimulusDuration = 0.1f;           //100ms stimulus duration
+    public ledColor firstColor;
+    public ledColor secondColor;
     public int ledBrightness = 10;                  //should be a value 0-100 (0=off)
     public float audioVolume = 1;                   //should be a value 0-1
     public float responseTimeMax = 1.9f;            //1.5s max possible response time
     public bool debugMode = false;
-
+    
     [Header("Experiment specific")]
     public int gaitPassesPerCondition = 40;             
     public int trialsPerCondition = 200;            //this is now only used for ST_sitting condition, for DT_walking condition the amount of trials is calculated with gaitPassesPerCondition * trialsPerGaitPass to prevent errors
@@ -46,7 +51,8 @@ public class ExperimentManager : MonoBehaviour
     private int[] currentSequence = new int[5];
     private int currentSequenceCounter;
 
-    private string[] visualStimuli = new string[4] { "left_yellow", "left_blue", "right_yellow", "right_blue" };
+    //private string[] visualStimuli = new string[4] { "left_yellow", "left_blue", "right_yellow", "right_blue" };
+    private string[] visualStimuli = new string[4] { "left_first", "left_second", "right_first", "right_second" };
     private string[] audioStimuli = new string[4] { "left_high", "left_low", "right_high", "right_low" };
     private int[] stimuliBaseSequence = new int[] { 0, 1, 2, 3 };
     private int[] stimuliBlockSequence;
@@ -1654,6 +1660,7 @@ public class ExperimentManager : MonoBehaviour
                     stimulusSide = "right";
                 }
 
+                /*
                 if (currentStimulus.Contains("yellow"))
                 {
                     stimulusColor = "yellow";   //rbg values instead?
@@ -1661,7 +1668,16 @@ public class ExperimentManager : MonoBehaviour
                 else if (currentStimulus.Contains("blue"))
                 {
                     stimulusColor = "blue";     //rgb values instead?
+                }*/
+                if (currentStimulus.Contains("first"))
+                {
+                    stimulusColor = ledColors[(int)firstColor];
                 }
+                else if (currentStimulus.Contains("second"))
+                {
+                    stimulusColor = ledColors[(int)secondColor];
+                }
+
 
                 TriggerVisualStimulus(stimulusSide, stimulusColor);
 
