@@ -1068,7 +1068,9 @@ public class ExperimentManager : MonoBehaviour
             "gaitsTotal:" + tempGaitPasses + ";" +
             "isiDurationAvg:" + isiDurationAvg.ToString() + ";" +
             "isiDurationVariation:" + isiDurationVariation.ToString() + ";" +
-            "responseTimeMax:" + responseTimeMax.ToString();
+            "responseTimeMax:" + responseTimeMax.ToString() + ";" +
+            "firstColor:" + ledColors[(int)firstColor] + ";" +
+            "secondColor:" + ledColors[(int)secondColor];
         marker.Write(tempMarkerText);
         Debug.Log(tempMarkerText);
 
@@ -1216,7 +1218,9 @@ public class ExperimentManager : MonoBehaviour
             "gaitsTotal:" + gaitPassesTraining + ";" +
             "isiDurationAvg:" + isiDurationAvg.ToString() + ";" +
             "isiDurationVariation:" + isiDurationVariation.ToString() + ";" +
-            "responseTimeMax:" + responseTimeMax.ToString();
+            "responseTimeMax:" + responseTimeMax.ToString() + ";" +
+            "firstColor:" + ledColors[(int)firstColor] + ";" +
+            "secondColor:" + ledColors[(int)secondColor];
         marker.Write(tempMarkerText);
         Debug.Log(tempMarkerText);
 
@@ -1986,7 +1990,7 @@ public class ExperimentManager : MonoBehaviour
             "color:" + color + ";" +
             "duration:" + stimulusDuration.ToString();
         marker.Write(tempMarkerText);
-        Debug.Log("Triggered Visual Stimulus: " + side + " " + color + " " + currentTime.ToString());
+        Debug.Log("Triggered Visual Stimulus: " + side + "; " + color + "; " + currentTime.ToString());
 
     }
 
