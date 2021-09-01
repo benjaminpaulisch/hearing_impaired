@@ -22,7 +22,7 @@ public class ExperimentManager : MonoBehaviour
     
     [Header("Experiment specific")]
     public int gaitPassesPerCondition = 40;             
-    public int trialsPerCondition = 200;            //this is now only used for ST_sitting condition, for DT_walking condition the amount of trials is calculated with gaitPassesPerCondition * trialsPerGaitPass to prevent errors
+    public int trialsPerSTCondition = 100;          //this is now only used for ST_sitting and ST_audio condition, for DT conditions the amount of trials is calculated with gaitPassesPerCondition * trialsPerGaitPass to prevent errors     
     public int trialsPerGaitPass = 5;               //the maximum number of trials possible during each gait pass
     //public int trialsWalkingChunkMultiplier = 10;   //will be multiplied with the amount of different stimuli to get a chunk size for the walking conditions
 
@@ -831,7 +831,7 @@ public class ExperimentManager : MonoBehaviour
         if (conditions[currentConditionNo].Contains("visual"))
         {
             //create trial sequence for the block
-            stimuliBlockSequence = CreateTrialSequenceArray(trialsPerCondition, stimuliBaseSequence, visualStimuli);
+            stimuliBlockSequence = CreateTrialSequenceArray(trialsPerSTCondition, stimuliBaseSequence, visualStimuli);
 
             //increment condition counter
             stVisualRunNo += 1;
@@ -840,7 +840,7 @@ public class ExperimentManager : MonoBehaviour
         else
         {
             //create trial sequence for the block
-            stimuliBlockSequence = CreateTrialSequenceArray(trialsPerCondition, stimuliBaseSequence, audioStimuli);
+            stimuliBlockSequence = CreateTrialSequenceArray(trialsPerSTCondition, stimuliBaseSequence, audioStimuli);
 
             //increment condition counter
             stAudioRunNo += 1;
@@ -848,7 +848,7 @@ public class ExperimentManager : MonoBehaviour
         }
 
         //Create isi durations for the block
-        isiDurations = CreateDurationsArray(trialsPerCondition, isiDurationAvg, isiDurationVariation);
+        isiDurations = CreateDurationsArray(trialsPerSTCondition, isiDurationAvg, isiDurationVariation);
 
 
         //write experiment start marker
@@ -856,7 +856,7 @@ public class ExperimentManager : MonoBehaviour
             "experiment:start;" +
             "condition:" + conditions[currentConditionNo] + ";" +
             "runNo:" + currentConditionCounter.ToString() + ";" +
-            "trialsTotal:" + trialsPerCondition.ToString() + ";" +
+            "trialsTotal:" + trialsPerSTCondition.ToString() + ";" +
             "isiDurationAvg:" + isiDurationAvg.ToString() + ";" +
             "isiDurationVariation:" + isiDurationVariation.ToString() + ";" +
             "responseTimeMax:" + responseTimeMax.ToString();
@@ -908,7 +908,7 @@ public class ExperimentManager : MonoBehaviour
         if (conditions[currentConditionNo].Contains("visual"))
         {
             //create trial sequence for the block
-            stimuliBlockSequence = CreateTrialSequenceArray(trialsPerCondition, stimuliBaseSequence, visualStimuli);
+            stimuliBlockSequence = CreateTrialSequenceArray(trialsPerSTCondition, stimuliBaseSequence, visualStimuli);
 
             //increment condition counter
             dtVisualRunNo += 1;
@@ -917,7 +917,7 @@ public class ExperimentManager : MonoBehaviour
         else
         {
             //create trial sequence for the block
-            stimuliBlockSequence = CreateTrialSequenceArray(trialsPerCondition, stimuliBaseSequence, audioStimuli);
+            stimuliBlockSequence = CreateTrialSequenceArray(trialsPerSTCondition, stimuliBaseSequence, audioStimuli);
 
             //increment condition counter
             dtAudioRunNo += 1;
@@ -925,7 +925,7 @@ public class ExperimentManager : MonoBehaviour
         }
 
         //Create isi durations for the block
-        isiDurations = CreateDurationsArray(trialsPerCondition, isiDurationAvg, isiDurationVariation);
+        isiDurations = CreateDurationsArray(trialsPerSTCondition, isiDurationAvg, isiDurationVariation);
 
 
         //write experiment start marker
@@ -1043,18 +1043,18 @@ public class ExperimentManager : MonoBehaviour
                 //ST_visual
 
                 //create trial sequence for the condition
-                stimuliBlockSequence = CreateTrialSequenceArray(trialsPerCondition, stimuliBaseSequence, visualStimuli);
+                stimuliBlockSequence = CreateTrialSequenceArray(trialsPerSTCondition, stimuliBaseSequence, visualStimuli);
             }
             else
             {
                 //ST_audio
 
                 //create trial sequence for the condition
-                stimuliBlockSequence = CreateTrialSequenceArray(trialsPerCondition, stimuliBaseSequence, audioStimuli);
+                stimuliBlockSequence = CreateTrialSequenceArray(trialsPerSTCondition, stimuliBaseSequence, audioStimuli);
             }
 
             //Create isi durations for the bloconditionck
-            isiDurations = CreateDurationsArray(trialsPerCondition, isiDurationAvg, isiDurationVariation);
+            isiDurations = CreateDurationsArray(trialsPerSTCondition, isiDurationAvg, isiDurationVariation);
 
         }
 
@@ -1064,7 +1064,7 @@ public class ExperimentManager : MonoBehaviour
             "experimentBlock:start;" +
             "condition:" + conditions[currentConditionNo] + ";" +
             "runNo:" + currentConditionCounter.ToString() + ";" +
-            "trialsTotal:" + trialsPerCondition.ToString() + ";" +
+            "trialsTotal:" + trialsPerSTCondition.ToString() + ";" +
             "gaitsTotal:" + tempGaitPasses + ";" +
             "isiDurationAvg:" + isiDurationAvg.ToString() + ";" +
             "isiDurationVariation:" + isiDurationVariation.ToString() + ";" +
@@ -1511,8 +1511,8 @@ public class ExperimentManager : MonoBehaviour
             else if (currentConditionNo == 1 || currentConditionNo == 3 )      
             {
                 //single task sitting conditions
-                //if (trialCounter < trialsPerCondition && !experimentEnd)
-                if (trialCounter <= trialsPerCondition && !experimentEnd)
+                //if (trialCounter < trialsPerSTCondition && !experimentEnd)
+                if (trialCounter <= trialsPerSTCondition && !experimentEnd)
                 {
                     RunTrial();
                 }
@@ -1845,7 +1845,7 @@ public class ExperimentManager : MonoBehaviour
         else if (currentConditionNo == 1 || currentConditionNo == 3)
         {
             //single task sitting conditions
-            if (trialCounter == trialsPerCondition)
+            if (trialCounter == trialsPerSTCondition)
             {
                 //set flag for experiment end and don't start another trial
                 experimentEnd = true;
