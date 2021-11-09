@@ -16,7 +16,9 @@ public class ExperimentManager : MonoBehaviour
     public ledColor firstColor;
     public ledColor secondColor;
     public int ledBrightness = 10;                  //should be a value 0-100 (0=off)
-    public float audioVolume = 1;                   //should be a value 0-1
+    public float audioVolumeLow = 1f;                //should be a value 0-1    
+    public float audioVolumeHigh = 0.86f;            //should be a value 0-1
+    private float audioVolume;
     public float responseTimeMax = 1.9f;            //1.5s max possible response time
     public bool debugMode = false;
     
@@ -2015,16 +2017,25 @@ public class ExperimentManager : MonoBehaviour
         if (pitch == "high")
         {
             audioSource_high.panStereo = stereoPan;
-            audioSource_high.volume = audioVolume;
+            audioSource_high.volume = audioVolumeLow;
             audioSource_high.Play();
         }
         else if (pitch == "low")
         {
             audioSource_low.panStereo = stereoPan;
-            audioSource_low.volume = audioVolume;
+            audioSource_low.volume = audioVolumeLow;
             audioSource_low.Play();
         }
         */
+
+        if (pitch == "high")
+        {
+            audioVolume = audioVolumeHigh;
+        }
+        else if (pitch == "low")
+        {
+            audioVolume = audioVolumeLow;
+        }
 
         //play audio in raspberry: send sound command to RasPi
         string[] sample = { "audio;" + side + ";" + pitch + ";" + audioVolume.ToString() + ";" + (stimulusDuration * 1000).ToString() + ";" + trialCounter };    //convert s to ms
