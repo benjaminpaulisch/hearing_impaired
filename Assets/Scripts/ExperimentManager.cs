@@ -10,16 +10,18 @@ public class ExperimentManager : MonoBehaviour
 
     //##### Inspector Interface #####
     [Header("General Config")]
-    public float isiDurationAvg = 1;                //1s ISI duration on average
-    public float isiDurationVariation = 0.5f;       //0.5s variation (so the ISI duration range is betweeen 0.5s and 1.5s)
+    public float isiDurationAvgVisual = 0.6f;       //ISI duration on average in visual conditions
+    public float isiDurationAvgAudio = 0.35f;       //ISI duration on average in audio conditions
+    public float isiDurationVariation = 0.2f;       //0.2s variation (so the ISI duration range is the avg +-0.2s)
     public float stimulusDuration = 0.1f;           //100ms stimulus duration
     public ledColor firstColor;
     public ledColor secondColor;
     public int ledBrightness = 10;                  //should be a value 0-100 (0=off)
-    public float audioVolumeLow = 1f;                //should be a value 0-1    
-    public float audioVolumeHigh = 0.86f;            //should be a value 0-1
+    public float audioVolumeLow = 1f;               //should be a value 0-1    
+    public float audioVolumeHigh = 0.86f;           //should be a value 0-1
     private float audioVolume;
-    public float responseTimeMax = 1.9f;            //1.5s max possible response time
+    public float maxResponseTimeVisual = 0.9f;      //max possible response time in visual conditions
+    public float maxResponseTimeAudio = 1.15f;      //max possible response time in audio conditions
     public bool debugMode = false;
     
     [Header("Experiment specific")]
@@ -104,6 +106,8 @@ public class ExperimentManager : MonoBehaviour
     private bool responseActive = false;
     //public static bool responseActive = false;
     private bool insideGait = false;
+    private float currentIsiDuratioAvg;
+    private float currentMaxResponseTime;
 
     // Training specific
     private int trainingVisualRunNo = 0;
@@ -850,7 +854,7 @@ public class ExperimentManager : MonoBehaviour
         }
 
         //Create isi durations for the block
-        isiDurations = CreateDurationsArray(trialsPerSTCondition, isiDurationAvg, isiDurationVariation);
+        isiDurations = CreateDurationsArray(trialsPerSTCondition, isiDurationAvgVisual, isiDurationVariation);
 
 
         //write experiment start marker
@@ -859,9 +863,9 @@ public class ExperimentManager : MonoBehaviour
             "condition:" + conditions[currentConditionNo] + ";" +
             "runNo:" + currentConditionCounter.ToString() + ";" +
             "trialsTotal:" + trialsPerSTCondition.ToString() + ";" +
-            "isiDurationAvg:" + isiDurationAvg.ToString() + ";" +
+            "isiDurationAvgVisual:" + isiDurationAvgVisual.ToString() + ";" +
             "isiDurationVariation:" + isiDurationVariation.ToString() + ";" +
-            "responseTimeMax:" + responseTimeMax.ToString();
+            "maxResponseTimeVisual:" + maxResponseTimeVisual.ToString();
         marker.Write(tempMarkerText);
         Debug.Log(tempMarkerText);
 
@@ -927,7 +931,7 @@ public class ExperimentManager : MonoBehaviour
         }
 
         //Create isi durations for the block
-        isiDurations = CreateDurationsArray(trialsPerSTCondition, isiDurationAvg, isiDurationVariation);
+        isiDurations = CreateDurationsArray(trialsPerSTCondition, isiDurationAvgVisual, isiDurationVariation);
 
 
         //write experiment start marker
@@ -936,9 +940,9 @@ public class ExperimentManager : MonoBehaviour
             "condition:" + conditions[currentConditionNo] + ";" +
             "runNo:" + currentConditionCounter.ToString() + ";" +
             "gaitPasses:" + gaitPassesPerCondition.ToString() + ";" +
-            "isiDurationAvg:" + isiDurationAvg.ToString() + ";" +
+            "isiDurationAvgVisual:" + isiDurationAvgVisual.ToString() + ";" +
             "isiDurationVariation:" + isiDurationVariation.ToString() + ";" +
-            "responseTimeMax:" + responseTimeMax.ToString();
+            "maxResponseTimeVisual:" + maxResponseTimeVisual.ToString();
         marker.Write(tempMarkerText);
         Debug.Log(tempMarkerText);
 
@@ -987,6 +991,9 @@ public class ExperimentManager : MonoBehaviour
         {
             stAudioRunNo += 1;
             currentConditionCounter = stAudioRunNo;
+
+            currentIsiDuratioAvg = isiDurationAvgAudio;
+            currentMaxResponseTime = maxResponseTimeAudio;
         }
         else if (currentConditionNo == 2)
         {
@@ -994,11 +1001,17 @@ public class ExperimentManager : MonoBehaviour
             currentConditionCounter = dtAudioRunNo;
 
             tempGaitPasses = gaitPassesPerCondition.ToString();
+
+            currentIsiDuratioAvg = isiDurationAvgAudio;
+            currentMaxResponseTime = maxResponseTimeAudio;
         }
         else if (currentConditionNo == 3)
         {
             stVisualRunNo += 1;
             currentConditionCounter = stVisualRunNo;
+
+            currentIsiDuratioAvg = isiDurationAvgVisual;
+            currentMaxResponseTime = maxResponseTimeVisual;
         }
         else //(currentConditionNo == 4)
         {
@@ -1006,6 +1019,9 @@ public class ExperimentManager : MonoBehaviour
             currentConditionCounter = dtVisualRunNo;
 
             tempGaitPasses = gaitPassesPerCondition.ToString();
+
+            currentIsiDuratioAvg = isiDurationAvgVisual;
+            currentMaxResponseTime = maxResponseTimeVisual;
         }
 
 
@@ -1030,7 +1046,8 @@ public class ExperimentManager : MonoBehaviour
             }
 
             //Create isi durations for the condition
-            isiDurations = CreateDurationsArray(gaitPassesPerCondition * trialsPerGaitPass, isiDurationAvg, isiDurationVariation);
+            //isiDurations = CreateDurationsArray(gaitPassesPerCondition * trialsPerGaitPass, isiDurationAvgVisual, isiDurationVariation);
+            isiDurations = CreateDurationsArray(gaitPassesPerCondition * trialsPerGaitPass, currentIsiDuratioAvg, isiDurationVariation);
 
 
             //initialize OptoGait measurement
@@ -1056,7 +1073,8 @@ public class ExperimentManager : MonoBehaviour
             }
 
             //Create isi durations for the bloconditionck
-            isiDurations = CreateDurationsArray(trialsPerSTCondition, isiDurationAvg, isiDurationVariation);
+            //isiDurations = CreateDurationsArray(trialsPerSTCondition, isiDurationAvgVisual, isiDurationVariation);
+            isiDurations = CreateDurationsArray(trialsPerSTCondition, currentIsiDuratioAvg, isiDurationVariation);
 
         }
 
@@ -1068,9 +1086,11 @@ public class ExperimentManager : MonoBehaviour
             "runNo:" + currentConditionCounter.ToString() + ";" +
             "trialsTotal:" + trialsPerSTCondition.ToString() + ";" +
             "gaitsTotal:" + tempGaitPasses + ";" +
-            "isiDurationAvg:" + isiDurationAvg.ToString() + ";" +
+            //"isiDurationAvg:" + isiDurationAvgVisual.ToString() + ";" +
+            "isiDurationAvg:" + currentIsiDuratioAvg.ToString() + ";" +
             "isiDurationVariation:" + isiDurationVariation.ToString() + ";" +
-            "responseTimeMax:" + responseTimeMax.ToString() + ";" +
+            //"responseTimeMax:" + maxResponseTimeVisual.ToString() + ";" +
+            "responseTimeMax:" + currentMaxResponseTime.ToString() + ";" +
             "firstColor:" + ledColors[(int)firstColor] + ";" +
             "secondColor:" + ledColors[(int)secondColor];
         marker.Write(tempMarkerText);
@@ -1192,6 +1212,10 @@ public class ExperimentManager : MonoBehaviour
 
             //create trial sequence for the condition
             stimuliBlockSequence = CreateTrialSequenceArray(gaitPassesTraining * trialsPerGaitPass, stimuliBaseSequence, visualStimuli);
+
+            currentIsiDuratioAvg = isiDurationAvgVisual;
+            currentMaxResponseTime = maxResponseTimeVisual;
+
         }
         else if (currentConditionNo == 7)
         {
@@ -1202,6 +1226,10 @@ public class ExperimentManager : MonoBehaviour
 
             //create trial sequence for the condition
             stimuliBlockSequence = CreateTrialSequenceArray(gaitPassesTraining * trialsPerGaitPass, stimuliBaseSequence, audioStimuli);
+
+            currentIsiDuratioAvg = isiDurationAvgAudio;
+            currentMaxResponseTime = maxResponseTimeAudio;
+
         }
         else
         {
@@ -1209,7 +1237,8 @@ public class ExperimentManager : MonoBehaviour
         }
 
         //Create isi durations for the condition
-        isiDurations = CreateDurationsArray(gaitPassesTraining * trialsPerGaitPass, isiDurationAvg, isiDurationVariation);
+        //isiDurations = CreateDurationsArray(gaitPassesTraining * trialsPerGaitPass, isiDurationAvgVisual, isiDurationVariation);
+        isiDurations = CreateDurationsArray(gaitPassesTraining * trialsPerGaitPass, currentIsiDuratioAvg, isiDurationVariation);
 
 
         //write experiment start marker
@@ -1218,9 +1247,11 @@ public class ExperimentManager : MonoBehaviour
             "condition:" + conditions[currentConditionNo] + ";" +
             "runNo:" + currentConditionCounter.ToString() + ";" +
             "gaitsTotal:" + gaitPassesTraining + ";" +
-            "isiDurationAvg:" + isiDurationAvg.ToString() + ";" +
+            //"isiDurationAvg:" + isiDurationAvgVisual.ToString() + ";" +
+            "isiDurationAvg:" + currentIsiDuratioAvg.ToString() + ";" +
             "isiDurationVariation:" + isiDurationVariation.ToString() + ";" +
-            "responseTimeMax:" + responseTimeMax.ToString() + ";" +
+            //"responseTimeMax:" + maxResponseTimeVisual.ToString() + ";" +
+            "responseTimeMax:" + currentMaxResponseTime.ToString() + ";" +
             "firstColor:" + ledColors[(int)firstColor] + ";" +
             "secondColor:" + ledColors[(int)secondColor];
         marker.Write(tempMarkerText);
@@ -1748,7 +1779,8 @@ public class ExperimentManager : MonoBehaviour
 
         }
 
-        if (currentTime > currentIsiDuration + stimulusDuration + responseTimeMax)
+        //if (currentTime > currentIsiDuration + stimulusDuration + maxResponseTimeVisual)
+        if (currentTime > currentIsiDuration + stimulusDuration + currentMaxResponseTime)
         {
             //response time over
             /*
@@ -2124,12 +2156,12 @@ public class ExperimentManager : MonoBehaviour
         float[] tempDurations = new float[arraySize];
 
 
-        //Debug.Log("All durations:");
+        Debug.Log("All durations:");
         for (int i = 0; i < arraySize; i++)
         {
             //the goal here is to get linear distributed values in the range
             tempDurations[i] = i * (durationVariation * 2 / (arraySize - 1)) + durationAverage - durationVariation;
-            //Debug.Log(tempDurations[i].ToString());
+            Debug.Log(tempDurations[i].ToString());
         }
         //shuffle cue duration order
         RandomizeArray.ShuffleArray(tempDurations);

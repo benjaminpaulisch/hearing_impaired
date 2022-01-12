@@ -13,6 +13,7 @@ public class lsl_rb_stream_handLeft : MonoBehaviour {
 	private liblsl.StreamInfo streamInfo;
 	private liblsl.XMLElement objs, obj;
 	private liblsl.XMLElement channels, chan;
+
 	public liblsl.StreamInfo GetStreamInfo()
 	{
 		return streamInfo; 
