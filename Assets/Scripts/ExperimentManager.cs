@@ -79,7 +79,7 @@ public class ExperimentManager : MonoBehaviour
     private float currentResponseTime = 0;          //calculated response time (duration)
 
     [HideInInspector] // Hides var below
-    public string participantID;
+    public string participantNo;
     private int participantAge;
     private string participantGroup;
     private string participantSex;
@@ -166,7 +166,7 @@ public class ExperimentManager : MonoBehaviour
     // Gameobject handles
     private GameObject mainMenuCanvas, configMenuCanvas, calibrationMenuCanvas, desktopInfoCanvas, expMenuCanvas, expConditionMenuCanvas, //audioTestCanvas,
         buttonExpMenu, buttonConnectRasPi, buttonCreateOptoGaitCube, buttonSetGaitCorners, buttonExpSequence, //buttonTraining, buttonBaselineWalking, buttonBaselineSitting, buttonSittingVisual, buttonSittingAudio, buttonWalkingST, buttonWalkingVisual, buttonWalkingAudio,
-        inputParticipantID, inputParticipantAge, inputParticipantGroup, inputParticipantSex, inputSequence,
+        inputParticipantNo, inputParticipantAge, inputParticipantGroup, inputParticipantSex, inputSequence,
         configurationIncompleteText, calibrationIncompleteText, rasPiNotConnectedText, textCondition, textConditionRunNo, textTrialNo, textTrialInGaitNo,  textGaitPassNo, textTime,
         optoGait, optoGaitConnectionText
         ;
@@ -225,7 +225,7 @@ public class ExperimentManager : MonoBehaviour
         buttonWalkingAudio = GameObject.Find("ButtonWalkingAudio");
         */
         configMenuCanvas = GameObject.Find("ConfigMenuCanvas");
-        inputParticipantID = GameObject.Find("InputParticipantID");
+        inputParticipantNo = GameObject.Find("InputParticipantNo");
         inputParticipantAge = GameObject.Find("InputParticipantAge");
         inputParticipantGroup = GameObject.Find("DropdownParticipantGroup");
         inputParticipantSex = GameObject.Find("DropdownParticipantSex");
@@ -626,11 +626,11 @@ public class ExperimentManager : MonoBehaviour
 
         //save data from the inputs:
         
-        //participantID
-        if (inputParticipantID.GetComponent<InputField>().text != "")
+        //participantNo
+        if (inputParticipantNo.GetComponent<InputField>().text != "")
         {
             idSet = true;
-            participantID = inputParticipantID.GetComponent<InputField>().text;
+            participantNo = inputParticipantNo.GetComponent<InputField>().text;
         }
         else
             idSet = false;
@@ -675,7 +675,7 @@ public class ExperimentManager : MonoBehaviour
             sexSet = false;
         
         /*
-        Debug.Log("participantID: " + participantID + " InputField.text: " + inputParticipantID.GetComponent<InputField>().text);
+        Debug.Log("participantNo: " + participantNo + " InputField.text: " + inputParticipantNo.GetComponent<InputField>().text);
         Debug.Log("participantAge: " + participantAge.ToString() + " InputField.text: " + inputParticipantAge.GetComponent<InputField>().text);
         Debug.Log("participantGroup: " + participantGroup + " InputField.text: " + inputParticipantGroup.GetComponent<Dropdown>().options[inputParticipantGroup.GetComponent<Dropdown>().value].text);
         Debug.Log("participantSex: " + participantSex + " InputField.text: " + inputParticipantSex.GetComponent<Dropdown>().options[inputParticipantSex.GetComponent<Dropdown>().value].text);
@@ -882,7 +882,7 @@ public class ExperimentManager : MonoBehaviour
 
         //write participant info (from configuration menu)
         tempMarkerText =
-            "participantID:" + participantID + ";" +
+            "participantNo:" + participantNo + ";" +
             "participantAge:" + participantAge.ToString() + ";" +
             "participantGroup:" + participantGroup + ";" +
             "participantSex:" + participantSex;
@@ -959,7 +959,7 @@ public class ExperimentManager : MonoBehaviour
 
         //write participant info (from configuration menu)
         tempMarkerText =
-            "participantID:" + participantID + ";" +
+            "participantNo:" + participantNo + ";" +
             "participantAge:" + participantAge.ToString() + ";" +
             "participantGroup:" + participantGroup + ";" +
             "participantSex:" + participantSex;
@@ -1061,7 +1061,7 @@ public class ExperimentManager : MonoBehaviour
 
 
             //initialize OptoGait measurement
-            //optoApiClient.InitializeTest(participantID);
+            //optoApiClient.InitializeTest(participantNo);
 
         }
         else
@@ -1108,7 +1108,7 @@ public class ExperimentManager : MonoBehaviour
 
         //write participant info (from configuration menu)
         tempMarkerText =
-            "participantID:" + participantID + ";" +
+            "participantNo:" + participantNo + ";" +
             "participantAge:" + participantAge.ToString() + ";" +
             "participantGroup:" + participantGroup + ";" +
             "participantSex:" + participantSex;
@@ -1174,7 +1174,7 @@ public class ExperimentManager : MonoBehaviour
 
         //write participant info (from configuration menu)
         tempMarkerText =
-            "participantID:" + participantID + ";" +
+            "participantNo:" + participantNo + ";" +
             "participantAge:" + participantAge.ToString() + ";" +
             "participantGroup:" + participantGroup + ";" +
             "participantSex:" + participantSex;
@@ -1347,7 +1347,7 @@ public class ExperimentManager : MonoBehaviour
 
         //write participant info (from configuration menu)
         tempMarkerText =
-            "participantID:" + participantID + ";" +
+            "participantNo:" + participantNo + ";" +
             "participantAge:" + participantAge.ToString() + ";" +
             "participantGroup:" + participantGroup + ";" +
             "participantSex:" + participantSex;
@@ -1403,7 +1403,7 @@ public class ExperimentManager : MonoBehaviour
 
         //write participant info (from configuration menu)
         tempMarkerText =
-            "participantID:" + participantID + ";" +
+            "participantNo:" + participantNo + ";" +
             "participantAge:" + participantAge.ToString() + ";" +
             "participantGroup:" + participantGroup + ";" +
             "participantSex:" + participantSex;
@@ -1425,7 +1425,7 @@ public class ExperimentManager : MonoBehaviour
 
 
         //initialize OptoGait measurement
-        //optoApiClient.InitializeTest(participantID);
+        //optoApiClient.InitializeTest(participantNo);
 
 
         expInitRun = true;
@@ -1538,7 +1538,7 @@ public class ExperimentManager : MonoBehaviour
                         //initialize new Optogait measurement for next gait (not during training)
                         if (!trainingStarted)
                         {
-                            //optoApiClient.InitializeTest(participantID);
+                            //optoApiClient.InitializeTest(participantNo);
 
                         }
                         

@@ -279,7 +279,7 @@ public class OptoApiClient : MonoBehaviour
         sprintGaitConfig =
         "<?xml version=\"1.0\" encoding=\"utf-16\"?>" +
         "<SprintGaitConfig xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance \" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema \">" +
-          "<TestName>GaitTest_" + participantID + "</TestName>" +
+          "<TestName>GaitTest_" + participantNo + "</TestName>" +
           "<PersonWeight>0</PersonWeight>" +
           "<PersonFootLength>0</PersonFootLength>" +
           "<PersonFootWidth>0</PersonFootWidth>" +
