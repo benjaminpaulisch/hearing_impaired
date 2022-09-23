@@ -70,7 +70,7 @@ public class lsl_rb_stream_footRight : MonoBehaviour {
 		streamInfo = new liblsl.StreamInfo(StreamName, StreamType, ChannelCount, dataRate, liblsl.channel_format_t.cf_float32, uid);
 
 		//setup LSL stream metadata (code from vizard) 
-		//streamInfo.desc().append_child("synchronization").append_child_value("can_drop_samples", "true");
+		streamInfo.desc().append_child("synchronization").append_child_value("can_drop_samples", "true");
 		var setup = streamInfo.desc().append_child("setup");
 		setup.append_child_value("name", StreamName);
 		// channels with position and orientation in quaternions
