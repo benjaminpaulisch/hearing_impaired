@@ -25,7 +25,9 @@ public class ExperimentManager : MonoBehaviour
     public bool debugMode = false;
     
     [Header("Experiment specific")]
-    public int gaitPassesPerCondition = 40;             
+	public int conditionDuration = 360;				//6 minutes
+    //public int gaitPassesPerCondition = 48;
+	public int conditionChunkSize = 5;				//used for generating the trial condition lists. The chunk size is the amount of gait passes for which the list will be created in advance.
     public int trialsPerSTCondition = 100;          //this is now only used for ST_sitting and ST_audio condition, for DT conditions the amount of trials is calculated with gaitPassesPerCondition * trialsPerGaitPass to prevent errors     
     public int trialsPerGaitPass = 5;               //the maximum number of trials possible during each gait pass
     //public int trialsWalkingChunkMultiplier = 10;   //will be multiplied with the amount of different stimuli to get a chunk size for the walking conditions
@@ -994,7 +996,7 @@ public class ExperimentManager : MonoBehaviour
         gaitPassCounter = 0;
         maxGaitTrialsReached = false;
 
-        string tempGaitPasses = "-";
+        //string tempGaitPasses = "-";
 
         // increment condition counter
         if (currentConditionNo == 1)
@@ -1010,7 +1012,7 @@ public class ExperimentManager : MonoBehaviour
             dtAudioRunNo += 1;
             currentConditionCounter = dtAudioRunNo;
 
-            tempGaitPasses = gaitPassesPerCondition.ToString();
+            //tempGaitPasses = gaitPassesPerCondition.ToString();
 
             currentIsiDuratioAvg = isiDurationAvgAudio;
             currentMaxResponseTime = maxResponseTimeAudio;
@@ -1028,7 +1030,7 @@ public class ExperimentManager : MonoBehaviour
             dtVisualRunNo += 1;
             currentConditionCounter = dtVisualRunNo;
 
-            tempGaitPasses = gaitPassesPerCondition.ToString();
+            //tempGaitPasses = gaitPassesPerCondition.ToString();
 
             currentIsiDuratioAvg = isiDurationAvgVisual;
             currentMaxResponseTime = maxResponseTimeVisual;
@@ -1045,20 +1047,22 @@ public class ExperimentManager : MonoBehaviour
                 //DT_visual
 
                 //create trial sequence for the condition
-                stimuliBlockSequence = CreateTrialSequenceArray(gaitPassesPerCondition * trialsPerGaitPass, stimuliBaseSequence, visualStimuli);
+                //stimuliBlockSequence = CreateTrialSequenceArray(gaitPassesPerCondition * trialsPerGaitPass, stimuliBaseSequence, visualStimuli);
+				stimuliBlockSequence = CreateTrialSequenceArray(conditionChunkSize * trialsPerGaitPass, stimuliBaseSequence, visualStimuli);
             }
             else
             {
                 //DT_audio
 
                 //create trial sequence for the condition
-                stimuliBlockSequence = CreateTrialSequenceArray(gaitPassesPerCondition * trialsPerGaitPass, stimuliBaseSequence, audioStimuli);
+                //stimuliBlockSequence = CreateTrialSequenceArray(gaitPassesPerCondition * trialsPerGaitPass, stimuliBaseSequence, audioStimuli);
+				stimuliBlockSequence = CreateTrialSequenceArray(conditionChunkSize * trialsPerGaitPass, stimuliBaseSequence, audioStimuli);
             }
 
             //Create isi durations for the condition
             //isiDurations = CreateDurationsArray(gaitPassesPerCondition * trialsPerGaitPass, isiDurationAvgVisual, isiDurationVariation);
-            isiDurations = CreateDurationsArray(gaitPassesPerCondition * trialsPerGaitPass, currentIsiDuratioAvg, isiDurationVariation);
-
+            //isiDurations = CreateDurationsArray(gaitPassesPerCondition * trialsPerGaitPass, currentIsiDuratioAvg, isiDurationVariation);
+			isiDurations = CreateDurationsArray(conditionChunkSize * trialsPerGaitPass, currentIsiDuratioAvg, isiDurationVariation);
 
             //initialize OptoGait measurement
             //optoApiClient.InitializeTest(participantNo);
@@ -1095,7 +1099,8 @@ public class ExperimentManager : MonoBehaviour
             "condition:" + conditions[currentConditionNo] + ";" +
             "runNo:" + currentConditionCounter.ToString() + ";" +
             "trialsTotal:" + trialsPerSTCondition.ToString() + ";" +
-            "gaitsTotal:" + tempGaitPasses + ";" +
+            //"gaitsTotal:" + tempGaitPasses + ";" +
+			"conditionDuration:" + conditionDuration + ";" +
             //"isiDurationAvg:" + isiDurationAvgVisual.ToString() + ";" +
             "isiDurationAvg:" + currentIsiDuratioAvg.ToString() + ";" +
             "isiDurationVariation:" + isiDurationVariation.ToString() + ";" +
@@ -1126,8 +1131,8 @@ public class ExperimentManager : MonoBehaviour
 
 
         //set desktop info texts
-        SetDesktopInfoTexts(conditions[currentConditionNo], currentConditionCounter.ToString(), "", "", "", "-");
-
+        //SetDesktopInfoTexts(conditions[currentConditionNo], currentConditionCounter.ToString(), "", "", "", "-");
+		SetDesktopInfoTexts(conditions[currentConditionNo], currentConditionCounter.ToString(), "", "", "", string.Format("{0}:{1:00}", (int)currentTime / 60, (int)currentTime % 60));
         expInitRun = true;
 
         
@@ -1391,12 +1396,13 @@ public class ExperimentManager : MonoBehaviour
 
         stWalkingRunNo += 1;
 
-        //write experiment start marker
-        tempMarkerText =
-            "experimentBlock:start;" +
-            "condition:" + conditions[currentConditionNo] + ";" +
-            "runNo:" + stWalkingRunNo.ToString() + ";" +
-            "gaitsTotal:" + gaitPassesPerCondition.ToString();
+		//write experiment start marker
+		tempMarkerText =
+			"experimentBlock:start;" +
+			"condition:" + conditions[currentConditionNo] + ";" +
+			"runNo:" + stWalkingRunNo.ToString() + ";" +
+			//"gaitsTotal:" + gaitPassesPerCondition.ToString();
+			"conditionDuration:" + conditionDuration.ToString();
            
         marker.Write(tempMarkerText);
         Debug.Log(tempMarkerText);
@@ -1421,7 +1427,8 @@ public class ExperimentManager : MonoBehaviour
 
 
         //set desktop info texts
-        SetDesktopInfoTexts(conditions[currentConditionNo], stWalkingRunNo.ToString(), "-", "-", "", "-");
+        //SetDesktopInfoTexts(conditions[currentConditionNo], stWalkingRunNo.ToString(), "-", "-", "", "-");
+		SetDesktopInfoTexts(conditions[currentConditionNo], stWalkingRunNo.ToString(), "-", "-", "", string.Format("{0}:{1:00}", (int)currentTime / 60, (int)currentTime % 60));
 
 
         //initialize OptoGait measurement
@@ -1513,16 +1520,17 @@ public class ExperimentManager : MonoBehaviour
 
 
                     //check if current gait was the last
-                    if (currentConditionNo == 2 || currentConditionNo == 4) 
+                    if (currentConditionNo == 2 || currentConditionNo == 4)		//dual task conditions
                     {
-                        if (gaitPassCounter == gaitPassesPerCondition)
+                        //if (gaitPassCounter == gaitPassesPerCondition)
+						if (currentTime > conditionDuration)
                         {
                             //set flag for experiment end
                             experimentEnd = true;
                             print("experimentEnd = true");
                         }
                     }
-                    else if (currentConditionNo == 7 || currentConditionNo == 8)
+                    else if (currentConditionNo == 7 || currentConditionNo == 8)	//dual task training
                     {
                         if (gaitPassCounter == gaitPassesDTTraining)
                         {
@@ -1570,8 +1578,8 @@ public class ExperimentManager : MonoBehaviour
             if (currentConditionNo == 0)
             {
                 //single task walking
-
-                if (gaitPassCounter > gaitPassesPerCondition)
+                //if (gaitPassCounter > gaitPassesPerCondition)
+				if (currentTime > conditionDuration)
                 {
                     //set flag for experiment end
                     experimentEnd = true;
@@ -1579,14 +1587,16 @@ public class ExperimentManager : MonoBehaviour
                 }
 
                 //update desktop info texts
-                SetDesktopInfoTexts(conditions[currentConditionNo], stWalkingRunNo.ToString(), "-", "-", gaitPassCounter.ToString(), "-");
+                //SetDesktopInfoTexts(conditions[currentConditionNo], stWalkingRunNo.ToString(), "-", "-", gaitPassCounter.ToString(), "-");
+				SetDesktopInfoTexts(conditions[currentConditionNo], stWalkingRunNo.ToString(), "-", "-", gaitPassCounter.ToString(), string.Format("{0}:{1:00}", (int)currentTime / 60, (int)currentTime % 60));
 
             } 
             //else if (currentConditionNo == 2 || currentConditionNo == 4)
             else if (currentConditionNo == 2 || currentConditionNo == 4 || currentConditionNo == 7 || currentConditionNo == 8)
             {
                 //dual task walking conditions
-                if (gaitPassCounter <= gaitPassesPerCondition)
+                //if (gaitPassCounter <= gaitPassesPerCondition)
+				if (currentTime > conditionDuration)
                 {
                     RunTrial();
                 }
@@ -1632,7 +1642,8 @@ public class ExperimentManager : MonoBehaviour
                         }
                 }
 
-                SetDesktopInfoTexts(conditions[currentConditionNo], tempRunNo.ToString(), trialCounter.ToString(), currentTrialInGait.ToString(), gaitPassCounter.ToString(), "-");
+                //SetDesktopInfoTexts(conditions[currentConditionNo], tempRunNo.ToString(), trialCounter.ToString(), currentTrialInGait.ToString(), gaitPassCounter.ToString(), "-");
+				SetDesktopInfoTexts(conditions[currentConditionNo], tempRunNo.ToString(), trialCounter.ToString(), currentTrialInGait.ToString(), gaitPassCounter.ToString(), string.Format("{0}:{1:00}", (int)currentTime / 60, (int)currentTime % 60));
 
             }
             //else if (currentConditionNo == 1 || currentConditionNo == 3 ) 
@@ -1984,7 +1995,8 @@ public class ExperimentManager : MonoBehaviour
                 print("Max number of trials in gait reached. Waiting for next gait.");
 
                 //check if max gaits in condition is also reached
-                if (gaitPassCounter == gaitPassesPerCondition)
+                //if (gaitPassCounter == gaitPassesPerCondition)
+				if (currentTime > conditionDuration)
                 {
                     //set flag for experiment end and don't start another trial
                     experimentEnd = true;
