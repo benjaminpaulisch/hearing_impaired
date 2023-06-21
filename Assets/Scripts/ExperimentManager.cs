@@ -1108,11 +1108,11 @@ public class ExperimentManager : MonoBehaviour
             "runNo:" + currentConditionCounter.ToString() + ";" +
             //"trialsTotal:" + trialsPerSTCondition.ToString() + ";" +
             //"gaitsTotal:" + tempGaitPasses + ";" +
-			"conditionDuration:" + conditionDuration + ";" +
-            //"isiDurationAvg:" + isiDurationAvgVisual.ToString() + ";" +
+			"conditionDuration:" + conditionDuration.ToString() + ";" +
+            "conditionChunkSize:" + conditionChunkSize.ToString() + ";" +
+            "trialsPerGaitPass:" + trialsPerGaitPass.ToString() + ";" +
             "isiDurationAvg:" + currentIsiDurationAvg.ToString() + ";" +
             "isiDurationVariation:" + isiDurationVariation.ToString() + ";" +
-            //"responseTimeMax:" + maxResponseTimeVisual.ToString() + ";" +
             "responseTimeMax:" + currentMaxResponseTime.ToString() + ";" +
             "firstColor:" + ledColors[(int)firstColor] + ";" +
             "secondColor:" + ledColors[(int)secondColor];
@@ -1249,10 +1249,8 @@ public class ExperimentManager : MonoBehaviour
                 "condition:" + conditions[currentConditionNo] + ";" +
                 "runNo:" + currentConditionCounter.ToString() + ";" +
                 "gaitsTotal:" + gaitPassesDTTraining + ";" +
-                //"isiDurationAvg:" + isiDurationAvgVisual.ToString() + ";" +
                 "isiDurationAvg:" + currentIsiDurationAvg.ToString() + ";" +
                 "isiDurationVariation:" + isiDurationVariation.ToString() + ";" +
-                //"responseTimeMax:" + maxResponseTimeVisual.ToString() + ";" +
                 "responseTimeMax:" + currentMaxResponseTime.ToString() + ";" +
                 "firstColor:" + ledColors[(int)firstColor] + ";" +
                 "secondColor:" + ledColors[(int)secondColor];
@@ -1283,10 +1281,8 @@ public class ExperimentManager : MonoBehaviour
                 "condition:" + conditions[currentConditionNo] + ";" +
                 "runNo:" + currentConditionCounter.ToString() + ";" +
                 "gaitsTotal:" + gaitPassesDTTraining + ";" +
-                //"isiDurationAvg:" + isiDurationAvgVisual.ToString() + ";" +
                 "isiDurationAvg:" + currentIsiDurationAvg.ToString() + ";" +
                 "isiDurationVariation:" + isiDurationVariation.ToString() + ";" +
-                //"responseTimeMax:" + maxResponseTimeVisual.ToString() + ";" +
                 "responseTimeMax:" + currentMaxResponseTime.ToString() + ";" +
                 "firstColor:" + ledColors[(int)firstColor] + ";" +
                 "secondColor:" + ledColors[(int)secondColor];
@@ -1316,10 +1312,8 @@ public class ExperimentManager : MonoBehaviour
                 "condition:" + conditions[currentConditionNo] + ";" +
                 "runNo:" + currentConditionCounter.ToString() + ";" +
                 "trialsTotal:" + trialsSTTraining.ToString() + ";" +
-                //"isiDurationAvg:" + isiDurationAvgVisual.ToString() + ";" +
                 "isiDurationAvg:" + currentIsiDurationAvg.ToString() + ";" +
                 "isiDurationVariation:" + isiDurationVariation.ToString() + ";" +
-                //"responseTimeMax:" + maxResponseTimeVisual.ToString() + ";" +
                 "responseTimeMax:" + currentMaxResponseTime.ToString() + ";" +
                 "firstColor:" + ledColors[(int)firstColor] + ";" +
                 "secondColor:" + ledColors[(int)secondColor];
@@ -1348,10 +1342,8 @@ public class ExperimentManager : MonoBehaviour
                 "condition:" + conditions[currentConditionNo] + ";" +
                 "runNo:" + currentConditionCounter.ToString() + ";" +
                 "trialsTotal:" + trialsSTTraining.ToString() + ";" +
-                //"isiDurationAvg:" + isiDurationAvgVisual.ToString() + ";" +
                 "isiDurationAvg:" + currentIsiDurationAvg.ToString() + ";" +
                 "isiDurationVariation:" + isiDurationVariation.ToString() + ";" +
-                //"responseTimeMax:" + maxResponseTimeVisual.ToString() + ";" +
                 "responseTimeMax:" + currentMaxResponseTime.ToString() + ";" +
                 "firstColor:" + ledColors[(int)firstColor] + ";" +
                 "secondColor:" + ledColors[(int)secondColor];
@@ -1506,14 +1498,9 @@ public class ExperimentManager : MonoBehaviour
 
                     // Then we need to start a new trial
                     StartTrial();
-
                 }
 
                 experimentStarted = true;
-
-                //update currentTimeInTrial (adding the time taken to render last frame)
-                currentTimeInTrial += Time.deltaTime;
-                currentTimeInCondition += Time.deltaTime;
 
             }
             else
@@ -1584,16 +1571,20 @@ public class ExperimentManager : MonoBehaviour
 
 
         //if (experimentStarted)
-        if (experimentStarted && !maxGaitTrialsReached && !experimentEnd)     //only if expriment is running and max gait trials have not been reached
+        if (experimentStarted && /*!maxGaitTrialsReached &&*/ !experimentEnd)     //only if expriment is running and max gait trials have not been reached
         {
-            //update currentTimeInTrial (adding the time taken to render last frame)
-            //currentTimeInTrial += Time.deltaTime;
-            //currentTimeInCondition += Time.deltaTime;
-
             // run all trials
             if (currentConditionNo == 0)
             {
                 //single task walking
+
+                //update time when inside gait (adding the time taken to render last frame)
+                if (insideGait)
+                {
+                    currentTimeInCondition += Time.deltaTime;
+                }
+
+
                 //if (gaitPassCounter > gaitPassesPerCondition)
 				if (currentTimeInCondition > conditionDuration)
                 {
@@ -1611,11 +1602,21 @@ public class ExperimentManager : MonoBehaviour
             else if (currentConditionNo == 2 || currentConditionNo == 4 || currentConditionNo == 7 || currentConditionNo == 8)
             {
                 //dual task walking conditions
+
+                //update times when inside gait (adding the time taken to render last frame)
+                if (insideGait)
+                {
+                    currentTimeInTrial += Time.deltaTime;
+                    currentTimeInCondition += Time.deltaTime;
+                }
+                    
+
                 //if (gaitPassCounter <= gaitPassesPerCondition)
-				//if (currentTimeInCondition < conditionDuration)
-                //{
+                //if (currentTimeInCondition < conditionDuration)
+                if (!maxGaitTrialsReached)
+                {
                     RunTrial();
-                //}
+                }
 
                 //update desktop info texts
                 /*
@@ -1666,6 +1667,10 @@ public class ExperimentManager : MonoBehaviour
             else if (currentConditionNo == 1 || currentConditionNo == 3 || currentConditionNo == 9 || currentConditionNo == 10)     //added new ST_trainings
             {
                 //single task sitting conditions
+
+                //update times when inside gait (adding the time taken to render last frame)
+                currentTimeInTrial += Time.deltaTime;
+                currentTimeInCondition += Time.deltaTime;
 
                 //ST_trainings
                 if (currentConditionNo == 9 || currentConditionNo == 10)
@@ -2148,6 +2153,12 @@ public class ExperimentManager : MonoBehaviour
                     break;
                 }*/
             case 9: //Training_ST_audio
+                {
+                    currentStimulus = audioStimuli[stimuliBlockSequence[trialCounter - 1]];
+                    currentIsiDuration = isiDurations[trialCounter - 1];
+
+                    break;
+                }
             case 1: //ST_audio
                 {
                     //currentStimulus = audioStimuli[stimuliBlockSequence[trialCounter-1]];
@@ -2197,6 +2208,12 @@ public class ExperimentManager : MonoBehaviour
                     break;
                 }
             case 10://Training_ST_visual
+                {
+                    currentStimulus = visualStimuli[stimuliBlockSequence[trialCounter - 1]];
+                    currentIsiDuration = isiDurations[trialCounter - 1];
+
+                    break;
+                }
             case 3: //ST_visual
                 {
                     //currentStimulus = visualStimuli[stimuliBlockSequence[trialCounter-1]];
