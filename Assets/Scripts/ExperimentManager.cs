@@ -1503,6 +1503,17 @@ public class ExperimentManager : MonoBehaviour
                 experimentStarted = true;
 
             }
+            //check if condition duration is over
+            else if (currentConditionNo == 2 || currentConditionNo == 4)		//dual task exp conditions
+            {
+                //if (gaitPassCounter == gaitPassesPerCondition)
+				if (currentTimeInCondition > conditionDuration)
+                {
+                    //set flag for experiment end
+                    experimentEnd = true;
+                    //print("experimentEnd = true");
+                }
+            }
             else
             {
                 //if not inside OptoGait
@@ -1521,7 +1532,7 @@ public class ExperimentManager : MonoBehaviour
                     }
 
 
-                    //check if current gait was the last
+                    /*check if current gait was the last
                     if (currentConditionNo == 2 || currentConditionNo == 4)		//dual task conditions
                     {
                         //if (gaitPassCounter == gaitPassesPerCondition)
@@ -1532,13 +1543,13 @@ public class ExperimentManager : MonoBehaviour
                             print("experimentEnd = true");
                         }
                     }
-                    else if (currentConditionNo == 7 || currentConditionNo == 8)	//dual task training
+                    else*/ if (currentConditionNo == 7 || currentConditionNo == 8)	//dual task training
                     {
                         if (gaitPassCounter == gaitPassesDTTraining)
                         {
                             //set flag for experiment end
                             experimentEnd = true;
-                            print("experimentEnd = true");
+                            //print("experimentEnd = true");
                         }
                     }
                     else 
@@ -1590,7 +1601,7 @@ public class ExperimentManager : MonoBehaviour
                 {
                     //set flag for experiment end
                     experimentEnd = true;
-                    print("experimentEnd = true");
+                    //print("experimentEnd = true");
                 }
 
                 //update desktop info texts
@@ -1612,8 +1623,13 @@ public class ExperimentManager : MonoBehaviour
                     
 
                 //if (gaitPassCounter <= gaitPassesPerCondition)
-                //if (currentTimeInCondition < conditionDuration)
-                if (!maxGaitTrialsReached)
+                if (currentTimeInCondition > conditionDuration)
+                {
+                    //set flag for experiment end
+                    experimentEnd = true;
+                    //print("experimentEnd = true");
+                }
+                else if (!maxGaitTrialsReached)
                 {
                     RunTrial();
                 }
@@ -1685,10 +1701,16 @@ public class ExperimentManager : MonoBehaviour
                 {
                     //if (trialCounter < trialsPerSTCondition && !experimentEnd)
                     //if (trialCounter <= trialsPerSTCondition && !experimentEnd)
-                    //if (currentTimeInCondition < conditionDuration)
-                    //{
+                    if (currentTimeInCondition <= conditionDuration)
+                    {
                         RunTrial();
-                    //}
+                    }
+                    else
+                    {
+                        //set flag for experiment end
+                        experimentEnd = true;
+                        //print("experimentEnd = true");
+                    } 
                 }
                 
 
